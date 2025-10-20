@@ -19,15 +19,21 @@ import com.main.servetogether.R
 
 //color schemes
 private val DarkColorScheme = darkColorScheme(
-    primary = Black,
-    secondary = PrimaryBlue,
-    tertiary = Black50
+    primary = PrimaryBlue,
+    onPrimary = Black,
+    secondary = Black50,
+    surface = Black,
+    onSurface = White,
+    background = Black
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = White,
-    secondary = Black30,
-    tertiary = Black50
+    primary = PrimaryBlue,
+    onPrimary = White,
+    secondary = Color.Gray,
+    surface = White,
+    onSurface = Black,
+    background = White
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
@@ -44,11 +50,11 @@ private val LightColorScheme = lightColorScheme(
 fun ServeTogetherTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+        dynamicColor -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
