@@ -13,7 +13,7 @@
         android:theme="@style/Theme.ServeTogether"
         tools:targetApi="31">
         <activity
-            android:name=".main.MainActivity"
+            android:name="com.main.servetogether.App"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.ServeTogether">

@@ -6,7 +6,7 @@
 
     <stroke
         android:width="2dp"
-        android:color="@color/transparent_black_30_percent"/> <!-- Border color -->
+        android:color="@color/black_30"/> <!-- Border color -->
 
     <corners android:radius="5dp"/> <!-- Rounded corners -->
 
