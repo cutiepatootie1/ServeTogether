@@ -29,6 +29,7 @@ import com.main.servetogether.R
 import com.main.servetogether.navigation.Screen
 import com.main.servetogether.ui.theme.White
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(navController: NavController) {
 // UI State

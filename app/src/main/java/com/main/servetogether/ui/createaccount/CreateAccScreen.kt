@@ -213,7 +213,7 @@ fun CreateAccScreen(navController: NavController) {
                     label = { Text("Birthdate", color = MaterialTheme.colorScheme.secondary) },
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(color = MaterialTheme.colorScheme.surfaceContainer),
+                        .background(color = MaterialTheme.colorScheme.surface),
                     trailingIcon = {
                         Icon(
                             imageVector = Icons.Default.CalendarToday,
