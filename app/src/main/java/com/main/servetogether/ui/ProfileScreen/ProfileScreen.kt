@@ -1,2 +1,2 @@
-package com.main.servetogether.ui.ProfileScreen
+package com.main.sertogether.ui.ProfileScreen
 
