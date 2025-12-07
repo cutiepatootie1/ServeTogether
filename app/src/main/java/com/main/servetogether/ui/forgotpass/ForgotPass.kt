@@ -51,6 +51,7 @@ fun ForgotPass(navController: NavController) {
                 .fillMaxWidth()
         ) {
 
+
             Text(
                 text = "Account recovery",
                 modifier = Modifier.padding(vertical = 40.dp),

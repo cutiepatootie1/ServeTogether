@@ -280,6 +280,7 @@ fun CreateAccScreen(navController: NavController) {
             }
 
             Column(
+
                 modifier = Modifier.padding(8.dp)
             )
             {

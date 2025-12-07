@@ -186,6 +186,7 @@ fun InfoRow(icon: ImageVector, text: String) {
 
 
 @Composable
+//StarBadge Block
 fun PointsBadge(points: String) {
     val darkBlue = Color(0xFF0D47A1)
     Box(
@@ -208,6 +209,7 @@ fun PointsBadge(points: String) {
     }
 }
 
+//Preview
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
