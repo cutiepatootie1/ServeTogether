@@ -184,6 +184,7 @@ fun InfoRow(icon: ImageVector, text: String) {
     }
 }
 
+
 @Composable
 fun PointsBadge(points: String) {
     val darkBlue = Color(0xFF0D47A1)
