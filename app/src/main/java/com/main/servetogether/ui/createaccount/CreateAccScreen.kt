@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Visibility
@@ -81,10 +82,10 @@ fun CreateAccScreen(navController: NavController) {
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
             modifier = Modifier
                 .padding(24.dp)
                 .fillMaxWidth()
+                .verticalScroll(scrollState)
         ) {
 
             Text(
@@ -307,6 +308,9 @@ fun CreateAccScreen(navController: NavController) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp)
+                    .clickable {
+                        agreeTerms = !agreeTerms
+                    }
             ) {
                 RoundedCheckbox(
                     checked = agreeTerms,
