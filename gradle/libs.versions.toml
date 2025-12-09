@@ -14,6 +14,7 @@ material-icons-core = "1.7.8"
 navigationCompose = "2.9.5"
 material = "1.13.0"
 kotlinxSerialization = "1.6.0"
+cameraCore = "1.5.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -37,6 +38,7 @@ androidx-compose-animation = {module = "androidx.compose.animation:animation", v
 accompanist-navigation-animation = {module = "com.google.accompanist:accompanist-navigation-animation", version.ref="accompanist"}
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 kotlinx-serialization-json = {group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+androidx-camera-core = { group = "androidx.camera", name = "camera-core", version.ref = "cameraCore" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
