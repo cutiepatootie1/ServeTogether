@@ -18,5 +18,22 @@ class App : ComponentActivity(){
                 AppNavGraph(navController)
             }
         }
+        // Inside MainActivity.kt > onCreate
+        try {
+            val info = packageManager.getPackageInfo(packageName, android.content.pm.PackageManager.GET_SIGNATURES)
+            for (signature in info.signatures!!) {
+                val md = java.security.MessageDigest.getInstance("SHA")
+                md.update(signature.toByteArray())
+                val digest = md.digest()
+                val hexString = StringBuilder()
+                for (b in digest) {
+                    hexString.append(String.format("%02X:", b))
+                }
+                // LOOK AT THIS LOG IN LOGCAT!
+                android.util.Log.e("MY_KEY_HASH", "Current SHA-1: ${hexString.toString()}")
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("MY_KEY_HASH", "Error getting hash", e)
+        }
     }
 }

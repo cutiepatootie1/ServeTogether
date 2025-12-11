@@ -7,7 +7,7 @@ import kotlinx.coroutines.tasks.await
 class AuthRepository {
 
     private val auth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
-    private val db: FirebaseFirestore by lazy {FirebaseFirestore.getInstance()}
+    private val db: FirebaseFirestore by lazy {FirebaseFirestore.getInstance("servedb")}
 
     // Suspend function means it runs in the background
     suspend fun createAccount(
