@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1015742251122",
+    "project_id": "servetogether-a9e1f",
+    "storage_bucket": "servetogether-a9e1f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1015742251122:android:6fdb6bb9ae6ba8937602eb",
+        "android_client_info": {
+          "package_name": "com.main.servetogether"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDsHMS7Jzzh2qJEX5iQeJ5Bo2pfV-hdDz4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
