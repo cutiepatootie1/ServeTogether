@@ -2,6 +2,7 @@ package com.main.servetogether.navigation
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
@@ -10,6 +11,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.main.servetogether.ui.createaccount.CreateAccScreen
 import com.main.servetogether.ui.forgotpass.ForgotPass
+import com.main.servetogether.ui.homescreen.HomeScreen
 import com.main.servetogether.ui.login.LoginScreen
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -59,5 +61,11 @@ fun AppNavGraph(navController: NavHostController) {
         { CreateAccScreen(navController) }
 
         composable(Screen.ForgotPass.route) { ForgotPass(navController) }
+        composable(Screen.Home.route,
+            enterTransition = {
+                fadeIn(animationSpec = tween(500))
+            }){
+            HomeScreen(navController)
+        }
     }
 }

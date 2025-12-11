@@ -1,5 +1,6 @@
 package com.main.servetogether.ui.createaccount
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +21,7 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -37,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
@@ -49,11 +52,44 @@ import com.main.servetogether.ui.theme.White
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
+import com.google.android.material.progressindicator.CircularProgressIndicator
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateAccScreen(navController: NavController) {
-    //variables
+fun CreateAccScreen(navController: NavController,
+                    viewModel: SignUpViewModel = viewModel()
+) {
+    // Context for Toasts
+    val context = LocalContext.current
+    // Watch the ViewModel state
+    val uiState by viewModel.signUpState.collectAsState()
+
+    LaunchedEffect(uiState) {
+        when (uiState) {
+            is SignUpState.Success -> {
+                Toast.makeText(context, "Account Created!", Toast.LENGTH_SHORT).show()
+                navController.navigate("home_screen") {
+                    popUpTo(0) {
+                        inclusive = true
+                    }
+                }
+                viewModel.resetState()
+            }
+            is SignUpState.Error -> {
+                val errorMsg = (uiState as SignUpState.Error).message
+                Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
+                viewModel.resetState()
+            }
+            else -> {} // Do nothing for Idle/Loading inside this listener
+        }
+    }
+    // Form Variables
+    var email by remember { mutableStateOf(("")) }
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
@@ -64,8 +100,9 @@ fun CreateAccScreen(navController: NavController) {
     var studentid by remember { mutableStateOf("") }
     var agreeTerms by remember { mutableStateOf(false) }
 
-    //states
+    // UI States
     val showWarningPop = remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
     val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
     val openDialog = remember { mutableStateOf(false) }
@@ -96,6 +133,24 @@ fun CreateAccScreen(navController: NavController) {
                     fontSize = 24.sp
                 )
             )
+
+            Column(modifier = Modifier.padding(8.dp)) {
+                Text(
+                    text = "Email",
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                        .background(color = MaterialTheme.colorScheme.surfaceContainer),
+                    shape = RoundedCornerShape(12.dp)
+                )
+            }
 
             /*
             * USERNAME COL
@@ -280,29 +335,6 @@ fun CreateAccScreen(navController: NavController) {
                 )
             }
 
-            Column(
-
-                modifier = Modifier.padding(8.dp)
-            )
-            {
-                Text(
-                    text = "Student ID",
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-
-                OutlinedTextField(
-                    value = studentid,
-                    onValueChange = { studentid = it },
-                    singleLine = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                        .background(color = MaterialTheme.colorScheme.surfaceContainer),
-                    shape = RoundedCornerShape(12.dp)
-                )
-            }
-
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -333,14 +365,22 @@ fun CreateAccScreen(navController: NavController) {
                 onClick = {
                     if (!agreeTerms) {
                         showWarningPop.value = true
+                        return@Button
                     }
+                    // Firebase signup
+                    viewModel.signUp(email, password, username, school, birthdate)
                 },
+                enabled = uiState !is SignUpState.Loading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
-                Text("Create Account")
+                if (uiState is SignUpState.Loading) {
+                    CircularProgressIndicator(color = White)
+                } else {
+                    Text("Create Account")
+                }
             }
 
             if (showWarningPop.value) {
@@ -371,7 +411,6 @@ fun CreateAccScreen(navController: NavController) {
 
 
         }
-        
     }
 }
 

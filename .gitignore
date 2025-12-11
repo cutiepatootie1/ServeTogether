@@ -34,3 +34,5 @@ captures/
 # Logs and temporary files
 *.log
 *.tmp
+/app/service-account.json
+/app/google-services.json

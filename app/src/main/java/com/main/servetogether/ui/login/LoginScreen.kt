@@ -1,5 +1,6 @@
 package com.main.servetogether.ui.login
 
+import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -17,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -25,6 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.main.servetogether.R
@@ -33,12 +36,39 @@ import com.main.servetogether.ui.theme.White
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(navController: NavController) {
-// UI State
-    var username by remember { mutableStateOf("") }
+fun LoginScreen(navController: NavController,
+                viewModel: LoginViewModel = viewModel()
+ ) {
+    val context = LocalContext.current
+    // UI State
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var keepSignedIn by remember { mutableStateOf(false) }
     var passwordVisible by remember { mutableStateOf(false) }
+
+    // Observer ViewModel State
+    val loginState by viewModel.loginState.collectAsState()
+
+    // Handle Side Effects (Navigation / Toasts)
+    LaunchedEffect(loginState) {
+        when (loginState) {
+            is LoginState.Success -> {
+                Toast.makeText(context, "Login Successful!", Toast.LENGTH_SHORT).show()
+                viewModel.resetState()
+
+                // Navigate to Home and clear backstack
+                navController.navigate("home_screen") {
+                    popUpTo(0) { inclusive = true }
+                }
+            }
+            is LoginState.Error -> {
+                val errorMsg = (loginState as LoginState.Error).message
+                Toast.makeText(context, "Error: $errorMsg", Toast.LENGTH_LONG).show()
+                viewModel.resetState()
+            }
+            else -> {}
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -62,11 +92,12 @@ fun LoginScreen(navController: NavController) {
             )
 
 
-            // Username field
+            // email field
             OutlinedTextField(
-                value = username,
-                onValueChange = { username = it },
-                placeholder = { Text("Username", color = MaterialTheme.colorScheme.secondary) },
+                value = email,
+                onValueChange = { email = it },
+                // Changed placeholder to Email
+                placeholder = { Text("Email", color = MaterialTheme.colorScheme.secondary) },
                 singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -124,13 +155,28 @@ fun LoginScreen(navController: NavController) {
 
             // Log in button
             Button(
-                onClick = { /* TODO: Handle login */ },
+                onClick = {
+                    if (email.isNotEmpty() && password.isNotEmpty()) {
+                        viewModel.loginUser(email, password)
+                    } else {
+                        Toast.makeText(context, "Please enter email and password", Toast.LENGTH_SHORT).show()
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                // Disable button if loading
+                enabled = loginState !is LoginState.Loading
             ) {
-                Text("Log in",fontSize = 16.sp)
+                if (loginState is LoginState.Loading) {
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                } else {
+                    Text("Log in", fontSize = 16.sp)
+                }
             }
 
             // Forgot password / Create account

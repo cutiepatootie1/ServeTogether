@@ -1,6 +1,7 @@
 [versions]
 agp = "8.13.1"
 accompanist = "0.36.0"
+firebaseAdmin = "9.2.0"
 kotlin = "2.0.21"
 coreKtx = "1.17.0"
 junit = "4.13.2"
@@ -14,9 +15,12 @@ material-icons-core = "1.7.8"
 navigationCompose = "2.9.5"
 material = "1.13.0"
 kotlinxSerialization = "1.6.0"
+googleServices = "4.4.4"
+firebaseBom = "34.6.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+firebase-admin = { module = "com.google.firebase.:firebase-admin", version.ref = "firebaseAdmin" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -37,10 +41,15 @@ androidx-compose-animation = {module = "androidx.compose.animation:animation", v
 accompanist-navigation-animation = {module = "com.google.accompanist:accompanist-navigation-animation", version.ref="accompanist"}
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 kotlinx-serialization-json = {group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+firebase-bom = {group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom"}
+firebase-auth = {group = "com.google.firebase", name = "firebase-auth"}
+firebase-firestore = {group = "com.google.firebase", name = "firebase-firestore"}
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+google-services = {id = "com.google.gms.google-services", version.ref = "googleServices"}
+compose-compiler = {id = "com.jetbrains.kotlin.plugin.compose", version.ref = "kotlin"}
 
