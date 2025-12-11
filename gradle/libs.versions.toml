@@ -45,13 +45,10 @@ androidx-compose-animation = {module = "androidx.compose.animation:animation", v
 accompanist-navigation-animation = {module = "com.google.accompanist:accompanist-navigation-animation", version.ref="accompanist"}
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 kotlinx-serialization-json = {group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
-<<<<<<< HEAD
 firebase-bom = {group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom"}
 firebase-auth = {group = "com.google.firebase", name = "firebase-auth"}
 firebase-firestore = {group = "com.google.firebase", name = "firebase-firestore"}
-=======
 androidx-camera-core = { group = "androidx.camera", name = "camera-core", version.ref = "cameraCore" }
->>>>>>> PointsBadge
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
