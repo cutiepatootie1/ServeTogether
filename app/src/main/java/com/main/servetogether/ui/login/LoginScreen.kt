@@ -202,7 +202,7 @@ fun LoginScreen(navController: NavController,
                 Text(
                     text = "Create an Account",
                     modifier = Modifier.clickable {
-                        navController.navigate(Screen.CreateAcc.route)
+                        navController.navigate(Screen.RoleSelect.route)
                     },
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.primary

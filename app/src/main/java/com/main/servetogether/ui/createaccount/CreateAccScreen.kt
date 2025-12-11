@@ -62,12 +62,14 @@ import com.google.android.material.progressindicator.CircularProgressIndicator
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateAccScreen(navController: NavController,
-                    viewModel: SignUpViewModel = viewModel()
+                    viewModel: SignUpViewModel = viewModel(),
+                    role: String
 ) {
     // Context for Toasts
     val context = LocalContext.current
     // Watch the ViewModel state
     val uiState by viewModel.signUpState.collectAsState()
+    val displayRole = role.replaceFirstChar { it.uppercase() }
 
     LaunchedEffect(uiState) {
         when (uiState) {
@@ -97,12 +99,12 @@ fun CreateAccScreen(navController: NavController,
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
     var birthdate by remember { mutableStateOf<Long?>(null) }
-    var studentid by remember { mutableStateOf("") }
     var agreeTerms by remember { mutableStateOf(false) }
+
+    var secretCode by remember { mutableStateOf("") }
 
     // UI States
     val showWarningPop = remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
     val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
     val openDialog = remember { mutableStateOf(false) }
@@ -126,7 +128,7 @@ fun CreateAccScreen(navController: NavController,
         ) {
 
             Text(
-                text = "Create an Account",
+                text = "Sign up as $displayRole",
                 modifier = Modifier.padding(vertical = 16.dp),
                 style = MaterialTheme.typography.titleLarge.copy(
                     color = MaterialTheme.colorScheme.secondary,
@@ -311,30 +313,30 @@ fun CreateAccScreen(navController: NavController,
                 }
 
             }
-
-
-            Column(
-                modifier = Modifier.padding(8.dp)
-            )
-            {
-                Text(
-                    text = "School",
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium
+//          SHOWS THIS FIELD ONLY IF USER CHOOSES TO REGISTER AS VOLUNTEER
+            if(role.equals("volunteer", ignoreCase = true)) {
+                Column(
+                    modifier = Modifier.padding(8.dp)
                 )
+                {
+                    Text(
+                        text = "School",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
 
-                OutlinedTextField(
-                    value = school,
-                    onValueChange = { school = it },
-                    singleLine = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                        .background(color = MaterialTheme.colorScheme.surfaceContainer),
-                    shape = RoundedCornerShape(12.dp)
-                )
+                    OutlinedTextField(
+                        value = school,
+                        onValueChange = { school = it },
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                            .background(color = MaterialTheme.colorScheme.surfaceContainer),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                }
             }
-
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -367,8 +369,13 @@ fun CreateAccScreen(navController: NavController,
                         showWarningPop.value = true
                         return@Button
                     }
+                    if (password != confirmPassword) {
+                        Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+
                     // Firebase signup
-                    viewModel.signUp(email, password, username, school, birthdate)
+                    viewModel.signUp(email, password, username, school, birthdate, role)
                 },
                 enabled = uiState !is SignUpState.Loading,
                 modifier = Modifier
@@ -417,5 +424,9 @@ fun CreateAccScreen(navController: NavController,
 @Preview(showBackground = true)
 @Composable
 fun CreateAccScreenPreview() {
-    CreateAccScreen(navController = rememberNavController())
+    CreateAccScreen(
+        navController = rememberNavController(),
+        viewModel = SignUpViewModel(),
+        role = "Organization"
+    )
 }

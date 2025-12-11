@@ -15,7 +15,8 @@ class AuthRepository {
         pass: String,
         username: String,
         school: String,
-        birthdate: Long?
+        birthdate: Long?,
+        role : String
     ): Result<String> {
         return try {
             // 1. Check if username exists
@@ -39,7 +40,8 @@ class AuthRepository {
                 "email" to email,
                 "school" to school,
                 "birthdate" to birthdate,
-                "createdAt" to System.currentTimeMillis()
+                "createdAt" to System.currentTimeMillis(),
+                "role" to role
             )
 
             db.collection("users").document(uid).set(userMap).await()
