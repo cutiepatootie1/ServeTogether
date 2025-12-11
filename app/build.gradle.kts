@@ -60,13 +60,10 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.material)
     implementation(libs.kotlinx.serialization.json)
-<<<<<<< HEAD
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
-=======
     implementation(libs.androidx.camera.core)
->>>>>>> PointsBadge
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
