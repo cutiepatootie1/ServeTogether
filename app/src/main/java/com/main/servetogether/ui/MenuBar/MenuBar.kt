@@ -51,7 +51,7 @@ fun MenuBar(
         Divider(modifier = Modifier.padding(horizontal = 16.dp))
 
         // Menu Items
-        MenuItem(icon = Icons.Filled.AccountCircle, text = "View Profile", darkBlue = darkBlue) { onItemClick("profile") }
+        MenuItem(icon = Icons.Filled.AccountCircle, text = "View Profile", darkBlue = darkBlue) { onItemClick("profile_screen") }
         MenuItem(icon = Icons.Filled.VolunteerActivism, text = "See activities", darkBlue = darkBlue) { onItemClick("activities") }
 
         // Highlighted Section

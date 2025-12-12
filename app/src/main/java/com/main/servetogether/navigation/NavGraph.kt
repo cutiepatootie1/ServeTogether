@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.main.servetogether.ui.ProfileScreen.ProfileScreen
 import com.main.servetogether.ui.createaccount.CreateAccScreen
 import com.main.servetogether.ui.forgotpass.ForgotPass
 import com.main.servetogether.ui.homescreen.HomeScreen
@@ -67,5 +68,25 @@ fun AppNavGraph(navController: NavHostController) {
             }){
             HomeScreen(navController)
         }
+
+        //route for the profile screen
+        composable(
+            route = Screen.Profile.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { 1000 },
+                    animationSpec = tween(300)
+                )
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { 1000 },
+                    animationSpec = tween(300)
+                )
+            }
+        ) {
+            ProfileScreen(navController)
+        }
+
     }
 }
