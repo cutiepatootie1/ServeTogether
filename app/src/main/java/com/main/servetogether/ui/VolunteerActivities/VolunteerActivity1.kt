@@ -177,27 +177,6 @@ fun VolunteerActivity1(navController: NavController) {
 }
 
 @Composable
-fun NumberCircle(number: Int, label: String, darkBlue: Color) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .size(60.dp)
-                .clip(CircleShape)
-                .background(darkBlue)
-        ) {
-            Text(
-                text = number.toString(),
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 24.sp
-            )
-        }
-        Text(text = label, color = darkBlue, fontWeight = FontWeight.SemiBold)
-    }
-}
-
-@Composable
 fun DescriptionBox() {
     Column(
         modifier = Modifier.fillMaxWidth(),
