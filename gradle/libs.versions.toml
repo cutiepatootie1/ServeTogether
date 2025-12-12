@@ -18,6 +18,7 @@ kotlinxSerialization = "1.6.0"
 googleServices = "4.4.4"
 firebaseBom = "34.6.0"
 cameraCore = "1.5.2"
+foundation = "1.10.0"
 
 
 [libraries]
@@ -47,6 +48,7 @@ firebase-bom = {group = "com.google.firebase", name = "firebase-bom", version.re
 firebase-auth = {group = "com.google.firebase", name = "firebase-auth"}
 firebase-firestore = {group = "com.google.firebase", name = "firebase-firestore"}
 androidx-camera-core = { group = "androidx.camera", name = "camera-core", version.ref = "cameraCore" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
 
 
 [plugins]

@@ -2,18 +2,18 @@ package com.main.servetogether.ui.ProfileScreen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
@@ -42,11 +42,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen() {
+fun ProfileScreen(navController: NavController? = null) {
+
     val darkBlue = Color(0xFF0D47A1)
+
     var fullName by remember { mutableStateOf("") }
     var gender by remember { mutableStateOf("") }
     var dateOfBirth by remember { mutableStateOf("") }
@@ -55,7 +59,6 @@ fun ProfileScreen() {
     var studentId by remember { mutableStateOf("") }
 
     Scaffold(
-        //HEADER
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -66,7 +69,7 @@ fun ProfileScreen() {
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { /* Handle menu click */ }) {
+                    IconButton(onClick = { navController?.popBackStack() }) {
                         Icon(
                             imageVector = Icons.Default.Menu,
                             contentDescription = "Menu",
@@ -75,7 +78,7 @@ fun ProfileScreen() {
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* Handle back click */ }) {
+                    IconButton(onClick = { navController?.popBackStack() }) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Back",
@@ -90,13 +93,17 @@ fun ProfileScreen() {
         },
         containerColor = Color(0xFFF0F2F5)
     ) { paddingValues ->
+
+        val scrollState = rememberScrollState()
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(scrollState)
                 .padding(paddingValues)
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
             Text(
                 text = "Personal Information",
                 fontSize = 22.sp,
@@ -114,13 +121,13 @@ fun ProfileScreen() {
                         .background(Color.LightGray),
                     tint = Color.White
                 )
+
                 Box(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)
                         .background(Color.White)
                         .border(2.dp, Color.White, CircleShape)
-                        .align(Alignment.BottomEnd)
                 ) {
                     Icon(
                         imageVector = Icons.Default.PhotoCamera,
@@ -142,7 +149,7 @@ fun ProfileScreen() {
                     .background(Color.White)
                     .padding(16.dp)
             ) {
-                //fullname
+
                 OutlinedTextField(
                     value = fullName,
                     onValueChange = { fullName = it },
@@ -150,7 +157,7 @@ fun ProfileScreen() {
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                //gender
+
                 OutlinedTextField(
                     value = gender,
                     onValueChange = { gender = it },
@@ -158,7 +165,7 @@ fun ProfileScreen() {
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                //date of birth
+
                 OutlinedTextField(
                     value = dateOfBirth,
                     onValueChange = { dateOfBirth = it },
@@ -166,7 +173,7 @@ fun ProfileScreen() {
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                //school
+
                 OutlinedTextField(
                     value = school,
                     onValueChange = { school = it },
@@ -174,7 +181,7 @@ fun ProfileScreen() {
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                //email address
+
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
@@ -182,7 +189,7 @@ fun ProfileScreen() {
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                //student ID
+
                 OutlinedTextField(
                     value = studentId,
                     onValueChange = { studentId = it },
@@ -192,9 +199,9 @@ fun ProfileScreen() {
             }
 
             Spacer(modifier = Modifier.weight(1f))
-            //UPDATE BUTTON
+
             Button(
-                onClick = { /* Handle update */ },
+                onClick = { /* Update info */ },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
@@ -208,8 +215,8 @@ fun ProfileScreen() {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, showSystemUi = true, name = "Profile Preview")
 @Composable
 fun ProfileScreenPreview() {
-    ProfileScreen()
+    ProfileScreen(navController = null)
 }
