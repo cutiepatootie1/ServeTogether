@@ -201,11 +201,6 @@ fun VolunteerActivityCard(
 }
 
 @Composable
-fun PointsBadge(points: String, darkBlue: Color, size: Dp, fontSize: TextUnit) {
-    TODO("Not yet implemented")
-}
-
-@Composable
 fun InfoRow(icon: ImageVector, text: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
