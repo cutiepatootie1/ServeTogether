@@ -23,11 +23,11 @@ class SignUpViewModel : ViewModel() {
     private val _signUpState = MutableStateFlow<SignUpState>(SignUpState.Idle)
     val signUpState: StateFlow<SignUpState> = _signUpState
 
-    fun signUp(email: String, pass: String, username: String, school: String, birthdate: Long?) {
+    fun signUp(email: String, pass: String, username: String, school: String, birthdate: Long?,role: String) {
         _signUpState.value = SignUpState.Loading
 
         viewModelScope.launch {
-            val result = repository.createAccount(email, pass, username, school, birthdate)
+            val result = repository.createAccount(email, pass, username, school, birthdate,role)
 
             if (result.isSuccess) {
                 _signUpState.value = SignUpState.Success
