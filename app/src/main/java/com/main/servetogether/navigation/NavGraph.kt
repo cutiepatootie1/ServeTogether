@@ -11,6 +11,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.main.servetogether.ui.ProfileScreen.ProfileScreen
 import com.main.servetogether.ui.createaccount.CreateAccScreen
+import com.main.servetogether.ui.donation.DonationScreen
 import com.main.servetogether.ui.forgotpass.ForgotPass
 import com.main.servetogether.ui.homescreen.HomeScreen
 import com.main.servetogether.ui.login.LoginScreen
@@ -87,6 +88,26 @@ fun AppNavGraph(navController: NavHostController) {
         ) {
             ProfileScreen(navController)
         }
+
+        //route for the donation screen
+        composable(
+            route = Screen.Donation.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { 1000 },
+                    animationSpec = tween(300)
+                )
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { 1000 },
+                    animationSpec = tween(300)
+                )
+            }
+        ) {
+            DonationScreen(navController)
+        }
+
 
     }
 }
