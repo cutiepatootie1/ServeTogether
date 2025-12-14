@@ -40,7 +40,7 @@ fun RecentActivitiesSection(
 
     // Fetch data when this component appears
     LaunchedEffect(Unit) {
-        viewModel.fetchUserActivities()
+        viewModel.fetchRegActivities()
     }
 
     Column(

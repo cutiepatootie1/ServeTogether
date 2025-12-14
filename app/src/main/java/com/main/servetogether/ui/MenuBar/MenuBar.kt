@@ -79,10 +79,6 @@ fun MenuBar(
             SubMenuItem(text = "Support") { onItemClick("support") }
         }
 
-        MenuItem(icon = Icons.Filled.Assignment, text = "Tasks", darkBlue = darkBlue) { onItemClick("tasks") }
-        MenuItem(icon = Icons.Filled.MilitaryTech, text = "Honor", darkBlue = darkBlue) { onItemClick("honor") }
-
-
         Spacer(modifier = Modifier.weight(1f))
 
         // Log Out

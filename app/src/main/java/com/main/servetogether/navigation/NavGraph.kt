@@ -21,6 +21,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.google.firebase.auth.FirebaseAuth
+import com.main.servetogether.data.model.VolunteeringActivity
 import com.main.servetogether.shared.AuthState
 import com.main.servetogether.shared.UserViewModel
 import com.main.servetogether.ui.createaccount.CreateAccScreen
@@ -29,6 +30,7 @@ import com.main.servetogether.ui.homescreen.HomeScreen
 import com.main.servetogether.ui.login.LoginScreen
 import com.main.servetogether.ui.roleselect.RoleSelectionScreen
 import com.main.servetogether.ui.volunteerActivities.CreateActivityScreen
+import com.main.servetogether.ui.volunteerActivities.TaskDetails
 import com.main.servetogether.ui.volunteerActivities.VolunteerActivity
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -156,6 +158,14 @@ fun AppNavGraph(navController: NavHostController,
                     activityId = id
                 )
             }
+
+        composable(
+            route = "task_detail/{taskId}",
+            arguments = listOf(navArgument("taskId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val taskId = backStackEntry.arguments?.getString("taskId") ?: ""
+            TaskDetails(navController = navController, taskId = taskId)
+        }
     }
 }
 
