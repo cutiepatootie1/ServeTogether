@@ -30,6 +30,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.main.servetogether.R
 import com.main.servetogether.navigation.Screen
 import com.main.servetogether.ui.theme.White
@@ -156,11 +158,29 @@ fun LoginScreen(navController: NavController,
             // Log in button
             Button(
                 onClick = {
-                    if (email.isNotEmpty() && password.isNotEmpty()) {
-                        viewModel.loginUser(email, password)
-                    } else {
-                        Toast.makeText(context, "Please enter email and password", Toast.LENGTH_SHORT).show()
-                    }
+                    val auth = FirebaseAuth.getInstance()
+                    val db = FirebaseFirestore.getInstance("servedb")
+
+                    auth.signInWithEmailAndPassword(email, password)
+                        .addOnSuccessListener { authResult ->
+                            val uid = authResult.user?.uid
+
+                            if (uid != null){
+                                db.collection("users").document(uid).get()
+                                    .addOnSuccessListener { document ->
+                                        val role = document.getString("role") ?: "user"
+                                        navController.navigate("home_screen/$role"){
+                                            popUpTo("login_screen"){inclusive = true}
+                                        }
+                                    }
+                                    .addOnFailureListener {
+                                        Toast.makeText(context, "Error", Toast.LENGTH_SHORT).show()
+                                    }
+                            }
+                        }
+                        .addOnFailureListener { e ->
+                            Toast.makeText(context, "Login Failed: ${e.message}",Toast.LENGTH_SHORT).show()
+                        }
                 },
                 modifier = Modifier
                     .fillMaxWidth()

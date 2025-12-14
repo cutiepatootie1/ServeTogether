@@ -1,5 +1,5 @@
 [versions]
-agp = "8.13.1"
+agp = "8.13.2"
 accompanist = "0.36.0"
 firebaseAdmin = "9.2.0"
 kotlin = "2.0.21"
@@ -18,6 +18,9 @@ kotlinxSerialization = "1.6.0"
 googleServices = "4.4.4"
 firebaseBom = "34.6.0"
 cameraCore = "1.5.2"
+material3 = "1.4.0"
+foundationLayout = "1.10.0"
+foundation = "1.10.0"
 
 
 [libraries]
@@ -47,6 +50,9 @@ firebase-bom = {group = "com.google.firebase", name = "firebase-bom", version.re
 firebase-auth = {group = "com.google.firebase", name = "firebase-auth"}
 firebase-firestore = {group = "com.google.firebase", name = "firebase-firestore"}
 androidx-camera-core = { group = "androidx.camera", name = "camera-core", version.ref = "cameraCore" }
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
+androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayout" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
 
 
 [plugins]
