@@ -37,6 +37,7 @@ import com.main.servetogether.R
 import com.main.servetogether.navigation.Screen
 import com.main.servetogether.shared.UserViewModel
 import com.main.servetogether.ui.MenuBar.MenuBar
+import com.main.servetogether.ui.homescreen.components.ActivityFeedSection
 import com.main.servetogether.ui.homescreen.components.RecentActivitiesSection
 import kotlinx.coroutines.launch
 
@@ -55,7 +56,6 @@ fun HomeScreen(role: String, navController: NavController,
             CircularProgressIndicator()
         }
     } else {
-
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -117,6 +117,9 @@ fun HomeScreen(role: String, navController: NavController,
             ) {
                 item {
                     RecentActivitiesSection(navController = navController)
+                }
+                item {
+                    ActivityFeedSection(navController)
                 }
             }
         }

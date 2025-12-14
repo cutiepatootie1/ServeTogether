@@ -170,7 +170,7 @@ fun LoginScreen(navController: NavController,
                                     .addOnSuccessListener { document ->
                                         val role = document.getString("role") ?: "user"
                                         navController.navigate("home_screen/$role"){
-                                            popUpTo("login_screen"){inclusive = true}
+                                            popUpTo(0){inclusive = true}
                                         }
                                     }
                                     .addOnFailureListener {

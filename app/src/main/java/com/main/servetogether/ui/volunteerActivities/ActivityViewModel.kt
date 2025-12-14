@@ -1,7 +1,9 @@
 package com.main.servetogether.ui.volunteerActivities
 
+import android.util.Log.e
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.main.servetogether.data.model.VolunteeringActivity
 import com.main.servetogether.data.repository.VolunteerRepository
@@ -25,6 +27,16 @@ class ActivityViewModel : ViewModel() {
     val repository = VolunteerRepository()
     private val _userActivities = MutableStateFlow<List<VolunteeringActivity>>(emptyList())
     val userActivities: StateFlow<List<VolunteeringActivity>> = _userActivities
+
+    private val _allActivities = MutableStateFlow<List<VolunteeringActivity>>(emptyList())
+    val allActivities: StateFlow<List<VolunteeringActivity>> = _allActivities
+    // Pagination State
+    private var lastVisible: DocumentSnapshot? = null
+    private val _isEndOfList = MutableStateFlow(false)
+    val isEndOfList: StateFlow<Boolean> = _isEndOfList
+    private var isLoadingMore = false
+    private val _isError = MutableStateFlow(false)
+    val isError: StateFlow<Boolean> = _isError
 
     fun createActivity(
         title: String,
@@ -66,7 +78,27 @@ class ActivityViewModel : ViewModel() {
             onFailure = {e -> _uiState.value = ActivityCreateState.Error(e.message ?: "Error")}
             )
     }
+// ... inside VolunteerViewModel ...
 
+    // Holds the single activity for the Detail Screen
+    private val _currentActivity = MutableStateFlow<VolunteeringActivity?>(null)
+    val currentActivity: StateFlow<VolunteeringActivity?> = _currentActivity
+
+    fun loadActivityDetails(activityId: String) {
+        // Reset first so we don't show old data
+        _currentActivity.value = null
+
+        repository.getActivityById(
+            activityId = activityId,
+            onSuccess = { activity ->
+                _currentActivity.value = activity
+            },
+            onFailure = { e ->
+                // Handle error (maybe add an Error state later)
+                android.util.Log.e("DETAIL_ERR", "Could not load activity", e)
+            }
+        )
+    }
     // 2. FETCH ACTIVITIES (Only the ones created by this user)
     fun fetchOrgActivities() {
         _uiState.value = ActivityCreateState.Loading
@@ -87,8 +119,7 @@ class ActivityViewModel : ViewModel() {
             }
     }
 
-    // fetch recent activities associated with the user
-    fun fetchUserActivities() {
+    fun fetchRegActivities() {
         val currentUser = auth.currentUser ?: return
 
         db.collection("activities")
@@ -104,6 +135,99 @@ class ActivityViewModel : ViewModel() {
                 // Handle error silently or log it
                 android.util.Log.e("Home", "Error fetching recents", e)
             }
+    }
+
+    // fetch recent activities associated with the user
+    fun fetchUserActivities() {
+
+        db.collection("activities")
+            .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .limit(5)
+            .get()
+            .addOnSuccessListener { result ->
+                val activities = result.toObjects(VolunteeringActivity::class.java)
+                _allActivities.value = activities
+            }
+            .addOnFailureListener { e ->
+                // Handle error silently or log it
+                android.util.Log.e("Home", "Error fetching recents", e)
+            }
+    }
+
+    fun registerForActivity(
+        activity: VolunteeringActivity,
+        onResult: (String) -> Unit // Callback to send message back to UI
+    ) {
+        val currentUser = auth.currentUser
+
+        // 1. Check Login
+        if (currentUser == null) {
+            onResult("You need to be logged in to register.")
+            return
+        }
+
+        // 2. Check if ALREADY registered
+        if (activity.registeredMembers.contains(currentUser.uid)) {
+            onResult("You are already registered for this activity!")
+            return
+        }
+
+        // 3. Register
+        repository.registerUserForActivity(
+            activityId = activity.id,
+            userId = currentUser.uid,
+            onSuccess = {
+                onResult("Successfully Registered!")
+                // Optionally refresh data here if you aren't using real-time listeners
+                fetchUserActivities()
+            },
+            onFailure = {
+                onResult("Registration failed. Please try again.")
+            }
+        )
+    }
+
+    fun loadNextPage() {
+        if (_isEndOfList.value || isLoadingMore) return
+
+        isLoadingMore = true
+        _isError.value = false
+
+        val timeoutHandler = android.os.Handler(android.os.Looper.getMainLooper())
+        val timeoutRunnable = Runnable {
+            if (isLoadingMore) {
+                isLoadingMore = false
+                _isError.value = true // Trigger timeout error
+            }
+        }
+
+        // Set timeout for 15 seconds
+        timeoutHandler.postDelayed(timeoutRunnable, 15000)
+
+        db.collection("activities")
+            .limit(10)
+            .get()
+            .addOnSuccessListener { result ->
+                timeoutHandler.removeCallbacks(timeoutRunnable)
+                val activities = result.toObjects(VolunteeringActivity::class.java)
+                _allActivities.value = activities
+                _uiState.value = ActivityCreateState.Idle
+                isLoadingMore = false
+            }
+            .addOnFailureListener { e ->
+                timeoutHandler.removeCallbacks(timeoutRunnable)
+                isLoadingMore = false
+                _isError.value = true
+                _uiState.value = ActivityCreateState.Error(e.message ?: "Failed to load")
+            }
+    }
+
+    // Call this to wipe and refresh the feed (e.g., Pull-to-Refresh)
+    fun refreshFeed() {
+        lastVisible = null
+        _isEndOfList.value = false
+        _allActivities.value = emptyList()
+        loadNextPage()
     }
 
     fun resetState(){
