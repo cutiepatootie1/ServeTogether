@@ -16,16 +16,20 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButtonDefaults.Icon
 import androidx.compose.material3.Text
@@ -34,12 +38,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -227,6 +235,76 @@ fun VolunteerActivity(
                 }
 
                 Spacer(modifier = Modifier.height(24.dp)) // Bottom spacing
+
+                TaskListSection(activityId)
+            }
+        }
+    }
+}
+
+@Composable
+fun TaskListSection(
+    activityId: String,
+    viewModel: TaskViewModel = viewModel() // Inject TaskViewModel
+) {
+    // 1. Observe the list
+    val tasks by viewModel.tasks.collectAsState()
+
+    // 2. Load data once
+    LaunchedEffect(activityId) {
+        viewModel.loadTasks(activityId)
+    }
+
+    Column {
+        Text("Tasks", style = MaterialTheme.typography.titleMedium)
+
+        // LIST OF TASKS
+        tasks.forEach { task ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().padding(8.dp)
+            ) {
+                // Checkbox for Update
+                Checkbox(
+                    checked = task.isCompleted,
+                    onCheckedChange = { viewModel.toggleTaskStatus(task) }
+                )
+
+                Text(
+                    text = task.title,
+                    modifier = Modifier.weight(1f),
+                    textDecoration = if (task.isCompleted) TextDecoration.LineThrough else null
+                )
+
+                // Delete Button
+                IconButton(onClick = { viewModel.deleteTask(task.id) }) {
+                    Icon(Icons.Default.Delete, "Delete")
+                }
+            }
+        }
+
+        // INPUT FIELD TO ADD NEW TASK ( Simplified)
+        var newTaskTitle by remember { mutableStateOf("") }
+        var description by remember { mutableStateOf("") }
+
+        Column(modifier = Modifier.fillMaxWidth()) {
+            OutlinedTextField(
+                value = newTaskTitle,
+                onValueChange = { newTaskTitle = it },
+                placeholder = { Text("Add a new task...") },
+                modifier = Modifier.weight(1f)
+            )
+            OutlinedTextField(
+                value = description,
+                onValueChange = { newTaskTitle = it },
+                placeholder = { Text("description") },
+                modifier = Modifier.weight(1f)
+            )
+            IconButton(onClick = {
+                viewModel.addTasks(newTaskTitle, description, activityId)
+                newTaskTitle = "" // Clear input
+            }) {
+                Icon(Icons.Default.Add, "Add")
             }
         }
     }

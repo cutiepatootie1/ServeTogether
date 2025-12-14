@@ -20,6 +20,7 @@ class ActivityViewModel : ViewModel() {
     val uiState: StateFlow<ActivityCreateState> = _uiState
 
     val auth = FirebaseAuth.getInstance()
+    val db = FirebaseFirestore.getInstance("servedb")
 
     val repository = VolunteerRepository()
     private val _userActivities = MutableStateFlow<List<VolunteeringActivity>>(emptyList())
@@ -67,10 +68,10 @@ class ActivityViewModel : ViewModel() {
     }
 
     // 2. FETCH ACTIVITIES (Only the ones created by this user)
-    fun fetchUserActivities() {
-        val currentUser = auth.currentUser ?: return
-        val db = FirebaseFirestore.getInstance("servedb")
+    fun fetchOrgActivities() {
         _uiState.value = ActivityCreateState.Loading
+        val currentUser = auth.currentUser ?: return
+
 
         db.collection("activities")
             // Query: Only show what *I* organized
@@ -83,6 +84,25 @@ class ActivityViewModel : ViewModel() {
             }
             .addOnFailureListener { e ->
                 _uiState.value = ActivityCreateState.Error(e.message ?: "Failed to load")
+            }
+    }
+
+    // fetch recent activities associated with the user
+    fun fetchUserActivities() {
+        val currentUser = auth.currentUser ?: return
+
+        db.collection("activities")
+            .whereArrayContains("registeredMembers", currentUser.uid)
+            .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .limit(5)
+            .get()
+            .addOnSuccessListener { result ->
+                val activities = result.toObjects(VolunteeringActivity::class.java)
+                _userActivities.value = activities
+            }
+            .addOnFailureListener { e ->
+                // Handle error silently or log it
+                android.util.Log.e("Home", "Error fetching recents", e)
             }
     }
 
