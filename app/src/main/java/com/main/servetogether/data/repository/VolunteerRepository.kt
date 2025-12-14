@@ -9,14 +9,15 @@ class VolunteerRepository {
 
     fun addActivity(
         activity: VolunteeringActivity,
-        onSuccess: () -> Unit,
+        onSuccess: (String) -> Unit,
         onFailure: (Exception)-> Unit
     ){
         val newDocRef = collection.document()
+        val newId = newDocRef.id
         val activityWithId = activity.copy(id = newDocRef.id)
 
         newDocRef.set(activityWithId)
-            .addOnSuccessListener { onSuccess() }
+            .addOnSuccessListener { onSuccess(newId) }
             .addOnFailureListener { e -> onFailure(e) }
     }
 }

@@ -7,4 +7,5 @@ sealed class Screen(val route: String){
     object Home : Screen("home_screen")
     // TODO: ADD NEW SCREEN FOR ROLE SELECTION WHICH WILL GIVE USERS NECESSARY PERMISSIONS FOR LATER FEATURES
     object RoleSelect : Screen("role_selection")
+    object CreateAct : Screen("create_activity")
 }

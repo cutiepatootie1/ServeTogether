@@ -20,21 +20,32 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.google.firebase.auth.FirebaseAuth
+import com.main.servetogether.shared.UserViewModel
+
 
 @Composable
 fun MenuBar(
-    onItemClick: (String) -> Unit
+    role: String,
+    onItemClick: (String) -> Unit,
+    viewModel: UserViewModel = viewModel()
 ) {
     val darkBlue = Color(0xFF0D47A1)
-
+    val currentUser by viewModel.userName.collectAsState()
+    val userSchool by viewModel.userSchool.collectAsState()
     Column(
         modifier = Modifier
             .fillMaxHeight()
@@ -44,8 +55,8 @@ fun MenuBar(
     ) {
         // Header
         Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp)) {
-            Text(text = "Kevin Ceballos", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-            Text(text = "University Of Cebu", fontSize = 14.sp, color = Color.Gray)
+            Text(text = "$currentUser", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+            Text(text = "$userSchool", fontSize = 14.sp, color = Color.Gray)
         }
 
         Divider(modifier = Modifier.padding(horizontal = 16.dp))
@@ -60,6 +71,9 @@ fun MenuBar(
                 .background(darkBlue)
                 .padding(vertical = 8.dp)
         ) {
+            if(role == "organization"){
+                SubMenuItem(text = "Start a Collective") { onItemClick("start_new_act")}
+            }
             SubMenuItem(text = "Volunteer Activities") { onItemClick("volunteer_activities") }
             SubMenuItem(text = "Volunteer Donations") { onItemClick("volunteer_donations") }
             SubMenuItem(text = "Support") { onItemClick("support") }
@@ -78,7 +92,8 @@ fun MenuBar(
 }
 
 @Composable
-fun MenuItem(icon: ImageVector, text: String, darkBlue: Color, onClick: () -> Unit) {
+fun MenuItem(icon: ImageVector, text: String, darkBlue: Color, onClick: () -> Unit = {
+}) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -111,5 +126,5 @@ fun SubMenuItem(text: String, onClick: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun MenuBarPreview() {
-    MenuBar(onItemClick = {})
+    MenuBar(role = "organization", onItemClick = {})
 }

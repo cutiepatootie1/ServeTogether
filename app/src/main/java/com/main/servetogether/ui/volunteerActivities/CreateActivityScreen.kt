@@ -82,9 +82,10 @@ fun CreateActivityScreen(navController: NavController,
     LaunchedEffect(uiState) {
         when (uiState) {
             is ActivityCreateState.Success -> {
+                val newId = (uiState as ActivityCreateState.Success).activityId
               Toast.makeText(context, "New activity created",Toast.LENGTH_SHORT)
-                navController.navigate("home_screen/$currentRole"){
-                    popUpTo(0){inclusive = true}
+                navController.navigate("activity_detail/$newId"){
+                    popUpTo("create_activity"){inclusive = true}
                 }
                 viewModel.resetState()
             }
@@ -305,7 +306,7 @@ fun CreateActivityScreen(navController: NavController,
                                 modifier = Modifier.size(24.dp)
                             )
                         } else {
-                            Text("Post Opportunity")
+                            Text("Post Activity")
                         }
                     }
                 }

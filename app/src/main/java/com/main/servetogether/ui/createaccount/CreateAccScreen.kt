@@ -1,5 +1,6 @@
 package com.main.servetogether.ui.createaccount
 
+import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -75,8 +76,8 @@ fun CreateAccScreen(navController: NavController,
         when (uiState) {
             is SignUpState.Success -> {
                 Toast.makeText(context, "Account Created!", Toast.LENGTH_SHORT).show()
-                navController.navigate("home_screen") {
-                    popUpTo(0) {
+                navController.navigate("home_screen/$role") {
+                    popUpTo("create_account") {
                         inclusive = true
                     }
                 }
@@ -101,7 +102,6 @@ fun CreateAccScreen(navController: NavController,
     var birthdate by remember { mutableStateOf<Long?>(null) }
     var agreeTerms by remember { mutableStateOf(false) }
 
-    var secretCode by remember { mutableStateOf("") }
 
     // UI States
     val showWarningPop = remember { mutableStateOf(false) }
@@ -311,7 +311,6 @@ fun CreateAccScreen(navController: NavController,
                         DatePicker(state = datePickerState)
                     }
                 }
-
             }
 //          SHOWS THIS FIELD ONLY IF USER CHOOSES TO REGISTER AS VOLUNTEER
             if(role.equals("volunteer", ignoreCase = true)) {
@@ -376,6 +375,7 @@ fun CreateAccScreen(navController: NavController,
 
                     // Firebase signup
                     viewModel.signUp(email, password, username, school, birthdate, role)
+
                 },
                 enabled = uiState !is SignUpState.Loading,
                 modifier = Modifier
@@ -421,12 +421,12 @@ fun CreateAccScreen(navController: NavController,
     }
 }
 
+@SuppressLint("ViewModelConstructorInComposable")
 @Preview(showBackground = true)
 @Composable
 fun CreateAccScreenPreview() {
     CreateAccScreen(
         navController = rememberNavController(),
-        viewModel = SignUpViewModel(),
         role = "Organization"
     )
 }
