@@ -72,9 +72,9 @@ fun MenuBar(
                 .padding(vertical = 8.dp)
         ) {
             if(role == "organization"){
-                SubMenuItem(text = "Start a Collective") { onItemClick("start_new_act")}
+                SubMenuItem(text = "Start an Activity") { onItemClick("start_new_act")}
+                SubMenuItem(text = "Manage Activities") { onItemClick("organized_activities") }
             }
-            SubMenuItem(text = "Volunteer Activities") { onItemClick("volunteer_activities") }
             SubMenuItem(text = "Volunteer Donations") { onItemClick("volunteer_donations") }
             SubMenuItem(text = "Support") { onItemClick("support") }
         }

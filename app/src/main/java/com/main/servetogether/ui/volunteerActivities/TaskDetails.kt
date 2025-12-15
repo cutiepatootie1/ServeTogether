@@ -15,14 +15,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.main.servetogether.shared.UserViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskDetails(navController: NavController,
                 taskId: String,
-                viewModel: TaskViewModel = viewModel())
+                viewModel: TaskViewModel = viewModel(),
+                userViewModel: UserViewModel = viewModel()
+)
 {
     val task by viewModel.currentTask.collectAsState()
+    val currentRole by userViewModel.userRole.collectAsState()
 
     // Local state for editing
     var titleEdit by remember { mutableStateOf("") }
@@ -120,43 +124,44 @@ fun TaskDetails(navController: NavController,
                     }
 
                     Spacer(modifier = Modifier.height(24.dp))
+                    if (currentRole == "organization") {
+                        // 2. EDITABLE FIELDS
+                        Text(
+                            "Edit Details",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = Color.Gray
+                        )
 
-                    // 2. EDITABLE FIELDS
-                    Text(
-                        "Edit Details",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = Color.Gray
-                    )
+                        Spacer(modifier = Modifier.height(8.dp))
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = titleEdit,
+                            onValueChange = { titleEdit = it },
+                            label = { Text("Task Title") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
 
-                    OutlinedTextField(
-                        value = titleEdit,
-                        onValueChange = { titleEdit = it },
-                        label = { Text("Task Title") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                        Spacer(modifier = Modifier.height(16.dp))
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                        OutlinedTextField(
+                            value = description,
+                            onValueChange = { description = it },
+                            label = { Text("Description") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
 
-                    OutlinedTextField(
-                        value = description,
-                        onValueChange = { description = it },
-                        label = { Text("Description") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                        Spacer(modifier = Modifier.height(32.dp))
 
-                    Spacer(modifier = Modifier.height(32.dp))
-
-                    // 3. SAVE BUTTON
-                    Button(
-                        onClick = {
-                            viewModel.updateTaskDetails(taskId, titleEdit, description)
-                            navController.popBackStack()
-                        },
-                        modifier = Modifier.fillMaxWidth().height(50.dp)
-                    ) {
-                        Text("Save Changes")
+                        // 3. SAVE BUTTON
+                        Button(
+                            onClick = {
+                                viewModel.updateTaskDetails(taskId, titleEdit, description)
+                                navController.popBackStack()
+                            },
+                            modifier = Modifier.fillMaxWidth().height(50.dp)
+                        ) {
+                            Text("Save Changes")
+                        }
                     }
                 }
             }

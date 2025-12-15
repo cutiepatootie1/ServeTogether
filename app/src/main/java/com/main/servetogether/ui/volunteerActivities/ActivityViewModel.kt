@@ -30,6 +30,8 @@ class ActivityViewModel : ViewModel() {
 
     private val _allActivities = MutableStateFlow<List<VolunteeringActivity>>(emptyList())
     val allActivities: StateFlow<List<VolunteeringActivity>> = _allActivities
+    private val _organizedActivities = MutableStateFlow<List<VolunteeringActivity>>(emptyList())
+    val organizedActivities: StateFlow<List<VolunteeringActivity>> = _organizedActivities
     // Pagination State
     private var lastVisible: DocumentSnapshot? = null
     private val _isEndOfList = MutableStateFlow(false)
@@ -111,7 +113,7 @@ class ActivityViewModel : ViewModel() {
             .get()
             .addOnSuccessListener { result ->
                 val activities = result.toObjects(VolunteeringActivity::class.java)
-                _userActivities.value = activities
+                _organizedActivities.value = activities
                 _uiState.value = ActivityCreateState.Idle
             }
             .addOnFailureListener { e ->
