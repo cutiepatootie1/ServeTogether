@@ -88,7 +88,7 @@ class UserViewModel : ViewModel() {
         }
     }
 
-    private fun loadUserData() {
+    fun loadUserData() {
         val userId = auth.currentUser?.uid ?: return
 
         viewModelScope.launch {

@@ -20,6 +20,7 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -46,6 +47,11 @@ fun MenuBar(
     onItemClick: (String) -> Unit,
     viewModel: UserViewModel = viewModel()
 ) {
+    LaunchedEffect(Unit) {
+        // Force load user data when MenuBar is shown
+        viewModel.loadUserData()
+    }
+
     val darkBlue = Color(0xFF0D47A1)
     val currentUser by viewModel.userName.collectAsState()
     val userSchool by viewModel.userSchool.collectAsState()
@@ -56,10 +62,33 @@ fun MenuBar(
             .background(Color.White)
             .padding(vertical = 16.dp)
     ) {
-        // Header
-        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp)) {
-            Text(text = "$currentUser", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-            Text(text = "$userSchool", fontSize = 14.sp, color = Color.Gray)
+        // Header gi usab nako
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp)
+        ) {
+            if (currentUser.isNotEmpty()) {
+                Text(
+                    text = currentUser,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    color = Color(0xFF0D47A1)
+                )
+            }
+
+            Text(
+                text = if (role == "organization") "Organization User" else "Volunteer User",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFF0D47A1)
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = userSchool,
+                fontSize = 14.sp,
+                color = Color(0xFF0D47A1)
+            )
         }
 
         Divider(modifier = Modifier.padding(horizontal = 16.dp))

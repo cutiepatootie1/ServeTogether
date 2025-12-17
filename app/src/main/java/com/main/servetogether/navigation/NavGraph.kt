@@ -56,20 +56,21 @@ fun AppNavGraph(navController: NavHostController,
                     targetOffsetX = { -1000 },
                     animationSpec = tween(300)
                 )
+
                 else -> null
             }
         }) { LoginScreen(navController) }
 
-                composable(Screen.ForgotPass.route) { ForgotPass(navController) }
+        composable(Screen.ForgotPass.route) { ForgotPass(navController) }
 
-                composable(Screen.RoleSelect.route) {
-                    RoleSelectionScreen(
-                        onRoleSelected = { role ->
-                            // Navigate to sign up, passing the role as a path parameter
-                            navController.navigate("create_account/$role")
-                        }
-                    )
+        composable(Screen.RoleSelect.route) {
+            RoleSelectionScreen(
+                onRoleSelected = { role ->
+                    // Navigate to sign up, passing the role as a path parameter
+                    navController.navigate("create_account/$role")
                 }
+            )
+        }
 
         // SCREEN 2: Create Account (Receives the variable)
         composable(
@@ -156,8 +157,8 @@ fun AppNavGraph(navController: NavHostController,
 
         composable(
             route = "activity_detail/{activityId}",
-            arguments = listOf(navArgument("activityId") {type = NavType.StringType })
-        ){ backStackEntry ->
+            arguments = listOf(navArgument("activityId") { type = NavType.StringType })
+        ) { backStackEntry ->
             val id = backStackEntry.arguments?.getString("activityId") ?: ""
 
             VolunteerActivity(
@@ -181,13 +182,13 @@ fun AppNavGraph(navController: NavHostController,
                     animationSpec = tween(300)
                 )
             }
-        composable(Screen.Profile.route) {
+        ) {
             ProfileScreen(navController = navController)
         }
 
 
 
-        // Update Profile Screen (Edit Mode)
+        // Update Profile Screen
         composable(
             route = "update_profile",
             enterTransition = {
