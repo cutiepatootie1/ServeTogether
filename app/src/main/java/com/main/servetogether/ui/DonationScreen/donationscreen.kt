@@ -2,6 +2,7 @@ package com.main.servetogether.ui.donationscreen
 
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -39,6 +40,8 @@ fun DonationScreen(
     var donorName by remember { mutableStateOf("") }
     var amount by remember { mutableStateOf("") }
     var message by remember { mutableStateOf("") }
+
+    var selectedPayment by remember { mutableStateOf("") }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -150,10 +153,48 @@ fun DonationScreen(
                     )
                 }
 
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Text(
+                    text = "Mode of Payment",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    modifier = Modifier.align(Alignment.Start)
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    PaymentOption(
+                        name = "GCash",
+                        selected = selectedPayment == "GCash",
+                        onClick = { selectedPayment = "GCash" },
+                        darkBlue = darkBlue
+                    )
+
+                    PaymentOption(
+                        name = "PayMaya",
+                        selected = selectedPayment == "PayMaya",
+                        onClick = { selectedPayment = "PayMaya" },
+                        darkBlue = darkBlue
+                    )
+
+                    PaymentOption(
+                        name = "Bank",
+                        selected = selectedPayment == "Bank",
+                        onClick = { selectedPayment = "Bank" },
+                        darkBlue = darkBlue
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Button(
                     onClick = { /* Handle donation */ },
+                    enabled = selectedPayment.isNotEmpty(),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
@@ -185,4 +226,35 @@ private fun DonationScreenPreviewContent() {
 @Composable
 fun DonationScreenPreview() {
     DonationScreenPreviewContent()
+}
+
+@Composable
+fun PaymentOption(
+    name: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    darkBlue: Color
+) {
+    Card(
+        modifier = Modifier
+            .width(100.dp)
+            .height(80.dp)
+            .clickable { onClick() },
+        colors = CardDefaults.cardColors(
+            containerColor = if (selected) darkBlue else Color.White
+        ),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Text(
+                text = name,
+                color = if (selected) Color.White else darkBlue,
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
 }
