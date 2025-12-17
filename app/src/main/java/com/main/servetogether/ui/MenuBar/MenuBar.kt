@@ -33,8 +33,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.main.servetogether.shared.UserViewModel
+import com.main.servetogether.navigation.Screen
+import com.main.servetogether.ui.donationscreen.DonationScreen
 
 
 @Composable
@@ -75,7 +78,7 @@ fun MenuBar(
                 SubMenuItem(text = "Start an Activity") { onItemClick("start_new_act")}
                 SubMenuItem(text = "Manage Activities") { onItemClick("organized_activities") }
             }
-            SubMenuItem(text = "Volunteer Donations") { onItemClick("volunteer_donations") }
+            SubMenuItem(text = "Volunteer Donations") { onItemClick("donation_screen/\$role\"") }
             SubMenuItem(text = "Support") { onItemClick("support") }
         }
 
@@ -124,3 +127,12 @@ fun SubMenuItem(text: String, onClick: () -> Unit) {
 fun MenuBarPreview() {
     MenuBar(role = "organization", onItemClick = {})
 }
+
+@Composable
+private fun DonationScreenPreviewContent() {
+    DonationScreen(
+        navController = rememberNavController(),
+        role = "volunteer"
+    )
+}
+

@@ -36,6 +36,8 @@ import com.main.servetogether.ui.ProfileScreen.ProfileScreen
 import com.main.servetogether.ui.volunteerActivities.VolunteerActivity
 import com.main.servetogether.ui.volunteerActivities.OrganizedActivity
 
+import com.main.servetogether.ui.donationscreen.DonationScreen
+
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -132,6 +134,33 @@ fun AppNavGraph(navController: NavHostController,
                     val role = backStackEntry.arguments?.getString("role") ?: "user"
                     HomeScreen(role = role, navController)
                 }
+
+                //For the Donation
+        composable(
+            route = Screen.Donation.route,
+            arguments = listOf(navArgument("role") { type = NavType.StringType }),
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { 1000 },
+                    animationSpec = tween(300)
+                )
+            },
+            popExitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { 1000 },
+                    animationSpec = tween(300)
+                )
+            }
+        ) { backStackEntry ->
+
+            val role = backStackEntry.arguments?.getString("role") ?: "volunteer"
+
+            DonationScreen(
+                navController = navController,
+                role = role
+            )
+        }
+
 
                 composable(
                     route = "create_activity",
