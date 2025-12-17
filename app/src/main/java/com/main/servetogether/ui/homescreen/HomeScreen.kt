@@ -5,8 +5,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
@@ -20,15 +24,20 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -49,12 +58,48 @@ fun HomeScreen(role: String, navController: NavController,
     val darkBlue = Color(0xFF0D47A1)
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    var showNewActivityDialog by remember { mutableStateOf(false) }
 
     if (currentRole == null){
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
     } else {
+        if (showNewActivityDialog) {
+            AlertDialog(
+                onDismissRequest = { showNewActivityDialog = false },
+                title = {
+                    Text(
+                        text = "New Activity Posted!",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        color = Color(0xFF0D47A1)
+                    )
+                },
+                text = {
+                    Text(
+                        "A new volunteering activity has been posted. Check it out and join if interested!",
+                        fontSize = 16.sp
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = { showNewActivityDialog = false },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0D47A1))
+                    ) {
+                        Text("View Activities", color = Color.White)
+                    }
+                },
+                shape = RoundedCornerShape(16.dp),
+                containerColor = Color(0xFFF0F2F5)
+            )
+        }
+
+        LaunchedEffect(currentRole) {
+            if (currentRole == "volunteer") {
+                showNewActivityDialog = true
+            }
+        }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -107,6 +152,13 @@ fun HomeScreen(role: String, navController: NavController,
             },
             containerColor = Color(0xFFF0F2F5)
         ) { paddingValues ->
+
+            Button(
+                onClick = { showNewActivityDialog = true },
+                modifier = Modifier.padding(vertical = 8.dp)
+            ) {
+                Text("Simulate New Activity")
+            }
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
