@@ -17,4 +17,7 @@ sealed class Screen(val route: String){
 
     object Donation : Screen("donation_screen/{role}")
 
+    object Support : Screen("support/{role}")
+
+
 }

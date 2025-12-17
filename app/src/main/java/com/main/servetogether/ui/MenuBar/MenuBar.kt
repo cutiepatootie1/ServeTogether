@@ -79,7 +79,7 @@ fun MenuBar(
                 SubMenuItem(text = "Manage Activities") { onItemClick("organized_activities") }
             }
             SubMenuItem(text = "Volunteer Donations") { onItemClick("donation_screen/\$role\"") }
-            SubMenuItem(text = "Support") { onItemClick("support") }
+            SubMenuItem(text = "Support") { onItemClick("support/$role") }
         }
 
         Spacer(modifier = Modifier.weight(1f))

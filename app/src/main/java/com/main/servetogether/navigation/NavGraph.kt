@@ -37,6 +37,7 @@ import com.main.servetogether.ui.volunteerActivities.VolunteerActivity
 import com.main.servetogether.ui.volunteerActivities.OrganizedActivity
 
 import com.main.servetogether.ui.donationscreen.DonationScreen
+import com.main.servetogether.ui.support.SupportScreen
 
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -194,6 +195,8 @@ fun AppNavGraph(navController: NavHostController,
         composable(Screen.Profile.route) {
             ProfileScreen(navController = navController)
         }
+
+
         //Volunteer Activity
         composable(
             route = Screen.VolunteerActivity.route,
@@ -220,6 +223,22 @@ fun AppNavGraph(navController: NavHostController,
             val taskId = backStackEntry.arguments?.getString("taskId") ?: ""
             TaskDetails(navController = navController, taskId = taskId)
         }
+
+        //for the support ni sya
+        composable(
+            route = Screen.Support.route,
+            arguments = listOf(navArgument("role") { type = NavType.StringType }),
+            enterTransition = {
+                slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(300))
+            },
+            popExitTransition = {
+                slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(300))
+            }
+        ) { backStackEntry ->
+            val role = backStackEntry.arguments?.getString("role") ?: "volunteer"
+            SupportScreen(navController = navController, role = role)
+        }
+
     }
 }
 
