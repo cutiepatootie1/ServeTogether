@@ -6,62 +6,63 @@ import kotlinx.coroutines.tasks.await
 
 class AuthRepository {
 
-    private val auth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
-    private val db: FirebaseFirestore by lazy {FirebaseFirestore.getInstance("servedb")}
+    private val auth = FirebaseAuth.getInstance()
+    private val db = FirebaseFirestore.getInstance("servedb") // Use same instance as LoginScreen
 
-    // Suspend function means it runs in the background
     suspend fun createAccount(
         email: String,
-        pass: String,
-        username: String,
+        password: String,
+        fullName: String,
+        gender: String,
         school: String,
         birthdate: Long?,
-        role : String
-    ): Result<String> {
+        role: String,
+        studentId: String
+    ): Result<Unit> {
         return try {
-            // 1. Check if username exists
-            val userCheck = db.collection("users")
-                .whereEqualTo("username", username)
-                .get()
-                .await() // .await() turns the Firebase callback into a clean coroutine
+            // Create authentication account
+            val authResult = auth.createUserWithEmailAndPassword(email, password).await()
+            val uid = authResult.user?.uid ?: throw Exception("Failed to get user ID")
 
-            if (!userCheck.isEmpty) {
-                return Result.failure(Exception("Username already taken"))
-            }
-
-            // 2. Create Auth User
-            val authResult = auth.createUserWithEmailAndPassword(email, pass).await()
-            val uid = authResult.user?.uid ?: throw Exception("User ID null")
-
-            // 3. Save to Firestore
-            val userMap = hashMapOf(
-                "uid" to uid,
-                "username" to username,
+            // Prepare user data
+            val userData = hashMapOf(
                 "email" to email,
+                "fullName" to fullName,
+                "gender" to gender,
                 "school" to school,
                 "birthdate" to birthdate,
-                "createdAt" to System.currentTimeMillis(),
-                "role" to role
+                "role" to role,
+                "studentId" to studentId, // Now accepts the actual student ID value
+                "createdAt" to System.currentTimeMillis()
             )
 
-            db.collection("users").document(uid).set(userMap).await()
+            // Save to Firestore
+            db.collection("users").document(uid).set(userData).await()
 
-            // Success!
-            Result.success(uid)
-
+            Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    // Inside AuthRepository class
-    suspend fun login(email: String, pass: String): Result<String> {
+    suspend fun login(email: String, password: String): Result<Unit> {
         return try {
-            // This is the standard Firebase Login command
-            auth.signInWithEmailAndPassword(email, pass).await()
-            Result.success(auth.currentUser?.uid ?: "")
+            auth.signInWithEmailAndPassword(email, password).await()
+            Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    fun logout() {
+        auth.signOut()
+    }
+
+    fun getCurrentUserId(): String? {
+        return auth.currentUser?.uid
+    }
+
+    fun isUserLoggedIn(): Boolean {
+        return auth.currentUser != null
     }
 }
