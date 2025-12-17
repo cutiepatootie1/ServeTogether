@@ -33,9 +33,8 @@ import com.main.servetogether.ui.volunteerActivities.CreateActivityScreen
 import com.main.servetogether.ui.volunteerActivities.TaskDetails
 import com.main.servetogether.ui.volunteerActivities.VolunteerActivity
 import com.main.servetogether.ui.ProfileScreen.ProfileScreen
-import com.main.servetogether.ui.volunteerActivities.VolunteerActivity
+import com.main.servetogether.ui.ProfileScreen.UpdateProfileScreen
 import com.main.servetogether.ui.volunteerActivities.OrganizedActivity
-
 import com.main.servetogether.ui.donationscreen.DonationScreen
 import com.main.servetogether.ui.support.SupportScreen
 
@@ -50,42 +49,16 @@ fun AppNavGraph(navController: NavHostController,
         navController = navController,
         startDestination = Screen.Login.route
     ) {
-        // --- 1. NEW: SPLASH / LOGIC CHECK ROUTE ---
-//        composable("splash_screen") {
-//            val authState by userViewModel.authState.collectAsState()
-//            val currentRole by userViewModel.userRole.collectAsState()
-//
-//            // Logic runs while user admires your logo
-//            LaunchedEffect(Unit) {
-//                when (authState) {
-//                    is AuthState.Authenticated -> {
-//                        val user = auth.currentUser
-//                        if (user != null) {
-//                            // Fetch role...
-//                            navController.navigate("home_screen/$currentRole") {
-//                                popUpTo(0) { inclusive = true }
-//                            }
-//                        } else {
-//                            navController.navigate(Screen.Login.route)
-//                        }
-//                    }
-//
-//                    else -> {}
-//                }
-//            }
-//        }
-
-                //login screen route
-                composable(Screen.Login.route, exitTransition = {
-                    when (targetState.destination.route) {
-                        Screen.CreateAcc.route -> slideOutHorizontally(
-                            targetOffsetX = { -1000 },
-                            animationSpec = tween(300)
-                        )
-
-                        else -> null
-                    }
-                }) { LoginScreen(navController) }
+        //login screen route
+        composable(Screen.Login.route, exitTransition = {
+            when (targetState.destination.route) {
+                Screen.CreateAcc.route -> slideOutHorizontally(
+                    targetOffsetX = { -1000 },
+                    animationSpec = tween(300)
+                )
+                else -> null
+            }
+        }) { LoginScreen(navController) }
 
                 composable(Screen.ForgotPass.route) { ForgotPass(navController) }
 
@@ -98,45 +71,45 @@ fun AppNavGraph(navController: NavHostController,
                     )
                 }
 
-                // SCREEN 2: Create Account (Receives the variable)
-                composable(
-                    route = "create_account/{role}", // {role} is a placeholder for the data
-                    arguments = listOf(navArgument("role") { type = NavType.StringType }),
-                    enterTransition = {
-                        slideInHorizontally(
-                            initialOffsetX = { 1000 }, // slide from right
-                            animationSpec = tween(300)
-                        )
-                    },
-                    exitTransition = {
-                        slideOutHorizontally(
-                            targetOffsetX = { 1000 },
-                            animationSpec = tween(300)
-                        )
-                    },
-                    popExitTransition = {
-                        slideOutHorizontally(
-                            targetOffsetX = { 1000 },
-                            animationSpec = tween(300)
-                        )
-                    }
-                ) { backStackEntry ->
-                    // Extract the role from the navigation arguments
-                    val role = backStackEntry.arguments?.getString("role") ?: "user"
-                    CreateAccScreen(navController, role = role)
-                }
+        // SCREEN 2: Create Account (Receives the variable)
+        composable(
+            route = "create_account/{role}", // {role} is a placeholder for the data
+            arguments = listOf(navArgument("role") { type = NavType.StringType }),
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { 1000 }, // slide from right
+                    animationSpec = tween(300)
+                )
+            },
+            exitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { 1000 },
+                    animationSpec = tween(300)
+                )
+            },
+            popExitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { 1000 },
+                    animationSpec = tween(300)
+                )
+            }
+        ) { backStackEntry ->
+            // Extract the role from the navigation arguments
+            val role = backStackEntry.arguments?.getString("role") ?: "user"
+            CreateAccScreen(navController, role = role)
+        }
 
-                composable(
-                    route = "home_screen/{role}",
-                    arguments = listOf(navArgument("role") { type = NavType.StringType }),
-                    enterTransition = {
-                        fadeIn(animationSpec = tween(500))
-                    }) { backStackEntry ->
-                    val role = backStackEntry.arguments?.getString("role") ?: "user"
-                    HomeScreen(role = role, navController)
-                }
+        composable(
+            route = "home_screen/{role}",
+            arguments = listOf(navArgument("role") { type = NavType.StringType }),
+            enterTransition = {
+                fadeIn(animationSpec = tween(500))
+            }) { backStackEntry ->
+            val role = backStackEntry.arguments?.getString("role") ?: "user"
+            HomeScreen(role = role, navController)
+        }
 
-                //For the Donation
+        //For the Donation
         composable(
             route = Screen.Donation.route,
             arguments = listOf(navArgument("role") { type = NavType.StringType }),
@@ -162,40 +135,76 @@ fun AppNavGraph(navController: NavHostController,
             )
         }
 
+        composable(
+            route = "create_activity",
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { 1000 }, // Slide in from right
+                    animationSpec = tween(300)
+                )
+            },
+            popExitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { 1000 }, // Slide out to right
+                    animationSpec = tween(300)
+                )
+            }
+        ) { backStackEntry ->
+            val role = backStackEntry.arguments?.getString("role") ?: "user"
+            CreateActivityScreen(navController, role = role)
+        }
 
-                composable(
-                    route = "create_activity",
-                    enterTransition = {
-                        slideInHorizontally(
-                            initialOffsetX = { 1000 }, // Slide in from right
-                            animationSpec = tween(300)
-                        )
-                    },
-                    popExitTransition = {
-                        slideOutHorizontally(
-                            targetOffsetX = { 1000 }, // Slide out to right
-                            animationSpec = tween(300)
-                        )
-                    }
-                ) { backStackEntry ->
-                    val role = backStackEntry.arguments?.getString("role") ?: "user"
-                    CreateActivityScreen(navController, role = role)
-                }
-            composable(
-                route = "activity_detail/{activityId}",
-                arguments = listOf(navArgument("activityId") {type = NavType.StringType })
-            ){ backStackEntry ->
-                val id = backStackEntry.arguments?.getString("activityId") ?: ""
+        composable(
+            route = "activity_detail/{activityId}",
+            arguments = listOf(navArgument("activityId") {type = NavType.StringType })
+        ){ backStackEntry ->
+            val id = backStackEntry.arguments?.getString("activityId") ?: ""
 
-                VolunteerActivity(
-                    navController = navController,
-                    activityId = id
+            VolunteerActivity(
+                navController = navController,
+                activityId = id
+            )
+        }
+
+        // Profile Screen (View Only)
+        composable(
+            route = Screen.Profile.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { 1000 },
+                    animationSpec = tween(300)
+                )
+            },
+            popExitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { 1000 },
+                    animationSpec = tween(300)
                 )
             }
         composable(Screen.Profile.route) {
             ProfileScreen(navController = navController)
         }
 
+
+
+        // Update Profile Screen (Edit Mode)
+        composable(
+            route = "update_profile",
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { 1000 },
+                    animationSpec = tween(300)
+                )
+            },
+            popExitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { 1000 },
+                    animationSpec = tween(300)
+                )
+            }
+        ) {
+            UpdateProfileScreen(navController = navController)
+        }
 
         //Volunteer Activity
         composable(

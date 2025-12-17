@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -25,6 +25,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -53,12 +55,9 @@ import com.main.servetogether.ui.theme.White
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
-import com.google.android.material.progressindicator.CircularProgressIndicator
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,12 +75,12 @@ fun CreateAccScreen(navController: NavController,
         when (uiState) {
             is SignUpState.Success -> {
                 Toast.makeText(context, "Account Created!", Toast.LENGTH_SHORT).show()
+                viewModel.resetState()
                 navController.navigate("home_screen/$role") {
-                    popUpTo("create_account") {
+                    popUpTo(0) {
                         inclusive = true
                     }
                 }
-                viewModel.resetState()
             }
             is SignUpState.Error -> {
                 val errorMsg = (uiState as SignUpState.Error).message
@@ -91,17 +90,22 @@ fun CreateAccScreen(navController: NavController,
             else -> {} // Do nothing for Idle/Loading inside this listener
         }
     }
+
     // Form Variables
     var email by remember { mutableStateOf(("")) }
-    var username by remember { mutableStateOf("") }
+    var fullName by remember { mutableStateOf("") }
+    var gender by remember { mutableStateOf("") }
+    var genderExpanded by remember { mutableStateOf(false) }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var school by remember { mutableStateOf("") }
+    var studentId by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
     var birthdate by remember { mutableStateOf<Long?>(null) }
     var agreeTerms by remember { mutableStateOf(false) }
 
+    val genderOptions = listOf("Male", "Female", "Other", "Prefer not to say")
 
     // UI States
     val showWarningPop = remember { mutableStateOf(false) }
@@ -136,6 +140,7 @@ fun CreateAccScreen(navController: NavController,
                 )
             )
 
+            // EMAIL FIELD
             Column(modifier = Modifier.padding(8.dp)) {
                 Text(
                     text = "Email",
@@ -154,23 +159,19 @@ fun CreateAccScreen(navController: NavController,
                 )
             }
 
-            /*
-            * USERNAME COL
-            *
-            * */
+            // FULL NAME FIELD
             Column(
                 modifier = Modifier.padding(8.dp)
-            )
-            {
+            ) {
                 Text(
-                    text = "Username",
+                    text = "Full Name",
                     color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.bodyMedium
                 )
 
                 OutlinedTextField(
-                    value = username,
-                    onValueChange = { username = it },
+                    value = fullName,
+                    onValueChange = { fullName = it },
                     singleLine = true,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -179,13 +180,61 @@ fun CreateAccScreen(navController: NavController,
                     shape = RoundedCornerShape(12.dp)
                 )
             }
-            /*
-            * PASSWORD COL
-            * */
+
+            // GENDER DROPDOWN
             Column(
                 modifier = Modifier.padding(8.dp)
-            )
-            {
+            ) {
+                Text(
+                    text = "Gender",
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+
+                Box {
+                    OutlinedTextField(
+                        value = gender,
+                        onValueChange = {},
+                        readOnly = true,
+                        singleLine = true,
+                        trailingIcon = {
+                            IconButton(onClick = { genderExpanded = !genderExpanded }) {
+                                Icon(
+                                    imageVector = Icons.Default.ArrowDropDown,
+                                    contentDescription = "Select Gender"
+                                )
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                            .background(color = MaterialTheme.colorScheme.surfaceContainer)
+                            .clickable { genderExpanded = true },
+                        shape = RoundedCornerShape(12.dp)
+                    )
+
+                    DropdownMenu(
+                        expanded = genderExpanded,
+                        onDismissRequest = { genderExpanded = false },
+                        modifier = Modifier.fillMaxWidth(0.85f)
+                    ) {
+                        genderOptions.forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(option) },
+                                onClick = {
+                                    gender = option
+                                    genderExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
+            // PASSWORD FIELD
+            Column(
+                modifier = Modifier.padding(8.dp)
+            ) {
                 Text(
                     text = "Password",
                     color = MaterialTheme.colorScheme.primary,
@@ -217,13 +266,11 @@ fun CreateAccScreen(navController: NavController,
                     shape = RoundedCornerShape(12.dp)
                 )
             }
-            /*
-            * CONFIRM PASSWORD COL
-            * */
+
+            // CONFIRM PASSWORD FIELD
             Column(
                 modifier = Modifier.padding(8.dp)
-            )
-            {
+            ) {
                 Text(
                     text = "Confirm Password",
                     color = MaterialTheme.colorScheme.primary,
@@ -256,10 +303,7 @@ fun CreateAccScreen(navController: NavController,
                 )
             }
 
-            /*
-              AREA FOR BIRTHDATE FIELD
-            */
-
+            // BIRTHDATE FIELD
             Box(
                 modifier = Modifier
                     .padding(8.dp)
@@ -282,12 +326,9 @@ fun CreateAccScreen(navController: NavController,
                     shape = RoundedCornerShape(12.dp)
                 )
 
-                /*
-                * ENCOUNTERED AN ISSUE WHERE TOUCH AREA IS LIMITED. THIS IS TO FIX THAT.
-                */
                 Box(
                     modifier = Modifier
-                        .matchParentSize() // Matches the size of the parent Box (which is the TextField)
+                        .matchParentSize()
                         .clickable { openDialog.value = true }
                 )
 
@@ -312,12 +353,12 @@ fun CreateAccScreen(navController: NavController,
                     }
                 }
             }
-//          SHOWS THIS FIELD ONLY IF USER CHOOSES TO REGISTER AS VOLUNTEER
+
+            // SCHOOL FIELD (Only for volunteers)
             if(role.equals("volunteer", ignoreCase = true)) {
                 Column(
                     modifier = Modifier.padding(8.dp)
-                )
-                {
+                ) {
                     Text(
                         text = "School",
                         color = MaterialTheme.colorScheme.primary,
@@ -335,7 +376,31 @@ fun CreateAccScreen(navController: NavController,
                         shape = RoundedCornerShape(12.dp)
                     )
                 }
+
+                // STUDENT ID FIELD (Only for volunteers)
+                Column(
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    Text(
+                        text = "Student ID",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+
+                    OutlinedTextField(
+                        value = studentId,
+                        onValueChange = { studentId = it },
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                            .background(color = MaterialTheme.colorScheme.surfaceContainer),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                }
             }
+
+            // TERMS AND CONDITIONS
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -354,14 +419,11 @@ fun CreateAccScreen(navController: NavController,
                 Text(
                     "I have read the terms and conditions",
                     color = MaterialTheme.colorScheme.primary,
-                    /*
-                    * MAKE CLICKABLE AS A LINK TO TERMS AND CONDITIONS POPUP TODO
-                    *
-                    */
                     fontSize = 14.sp
                 )
             }
 
+            // CREATE ACCOUNT BUTTON
             Button(
                 onClick = {
                     if (!agreeTerms) {
@@ -372,9 +434,17 @@ fun CreateAccScreen(navController: NavController,
                         Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
                         return@Button
                     }
+                    if (fullName.isBlank()) {
+                        Toast.makeText(context, "Please enter your full name", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+                    if (gender.isBlank()) {
+                        Toast.makeText(context, "Please select your gender", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
 
                     // Firebase signup
-                    viewModel.signUp(email, password, username, school, birthdate, role)
+                    viewModel.signUp(email, password, fullName, school, birthdate, gender, role, studentId)
 
                 },
                 enabled = uiState !is SignUpState.Loading,
@@ -393,7 +463,6 @@ fun CreateAccScreen(navController: NavController,
             if (showWarningPop.value) {
                 AlertDialog(
                     onDismissRequest = {
-                        // Dismiss the dialog when the user taps outside or presses back
                         showWarningPop.value = false
                     },
                     title = {
@@ -405,9 +474,7 @@ fun CreateAccScreen(navController: NavController,
                     confirmButton = {
                         TextButton(
                             onClick = {
-                                // Dismiss the pop-up and proceed with registration
                                 showWarningPop.value = false
-
                             }
                         ) {
                             Text("Dismiss")
@@ -415,8 +482,6 @@ fun CreateAccScreen(navController: NavController,
                     },
                 )
             }
-
-
         }
     }
 }
@@ -427,6 +492,6 @@ fun CreateAccScreen(navController: NavController,
 fun CreateAccScreenPreview() {
     CreateAccScreen(
         navController = rememberNavController(),
-        role = "Organization"
+        role = "Volunteer"
     )
 }

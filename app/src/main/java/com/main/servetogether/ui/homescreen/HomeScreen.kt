@@ -33,7 +33,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
-import com.main.servetogether.R
 import com.main.servetogether.navigation.Screen
 import com.main.servetogether.shared.UserViewModel
 import com.main.servetogether.ui.MenuBar.MenuBar
