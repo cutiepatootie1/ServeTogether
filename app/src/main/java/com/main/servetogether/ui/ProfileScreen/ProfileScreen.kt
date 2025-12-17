@@ -50,14 +50,19 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.main.servetogether.data.repository.AuthRepository
 import com.main.servetogether.shared.UserViewModel
 import com.main.servetogether.ui.MenuBar.MenuBar
 import kotlinx.coroutines.launch
+import com.google.firebase.auth.FirebaseAuth
+import com.main.servetogether.navigation.Screen
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(navController: NavController,
                   viewModel: UserViewModel = viewModel()) {
+
     val darkBlue = Color(0xFF0D47A1)
     var fullName by remember { mutableStateOf("") }
     var gender by remember { mutableStateOf("") }
@@ -66,7 +71,8 @@ fun ProfileScreen(navController: NavController,
     var email by remember { mutableStateOf("") }
     var studentId by remember { mutableStateOf("") }
 
-
+    val auth = FirebaseAuth.getInstance()
+    val user = auth.currentUser
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
@@ -239,4 +245,6 @@ fun ProfileScreen(navController: NavController,
         }
     }
 }
+
+
 
