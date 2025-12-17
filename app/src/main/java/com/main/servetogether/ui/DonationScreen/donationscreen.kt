@@ -43,6 +43,10 @@ fun DonationScreen(
 
     var selectedPayment by remember { mutableStateOf("") }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    var showSuccessDialog by remember { mutableStateOf(false) }
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -84,7 +88,8 @@ fun DonationScreen(
                     )
                 )
             },
-            containerColor = Color(0xFFF0F2F5)
+            containerColor = Color(0xFFF0F2F5),
+                    snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
         ) { paddingValues ->
 
             Column(
@@ -210,7 +215,17 @@ fun DonationScreen(
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Button(
-                    onClick = { /* Handle donation */ },
+                    onClick = {
+                        // Show the success dialog
+                        showSuccessDialog = true
+
+                        // Reset input fields after
+                        donorName = ""
+                        amount = ""
+                        message = ""
+                        selectedPayment = ""
+                    },
+
                     enabled = selectedPayment.isNotEmpty(),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -219,6 +234,35 @@ fun DonationScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = darkBlue)
                 ) {
                     Text("DONATE NOW", fontSize = 16.sp, color = Color.White)
+                }
+                if (showSuccessDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showSuccessDialog = false },
+                        title = {
+                            Text(
+                                "Donation Successful 🎉",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = darkBlue
+                            )
+                        },
+                        text = {
+                            Text(
+                                "Thank you for supporting the cause! Your contribution will help us reach more people.",
+                                fontSize = 16.sp
+                            )
+                        },
+                        confirmButton = {
+                            Button(
+                                onClick = { showSuccessDialog = false },
+                                colors = ButtonDefaults.buttonColors(containerColor = darkBlue)
+                            ) {
+                                Text("OK", color = Color.White)
+                            }
+                        },
+                        shape = RoundedCornerShape(16.dp),
+                        containerColor = Color(0xFFF0F2F5),
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
