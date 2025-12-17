@@ -32,6 +32,10 @@ import com.main.servetogether.ui.roleselect.RoleSelectionScreen
 import com.main.servetogether.ui.volunteerActivities.CreateActivityScreen
 import com.main.servetogether.ui.volunteerActivities.TaskDetails
 import com.main.servetogether.ui.volunteerActivities.VolunteerActivity
+import com.main.servetogether.ui.ProfileScreen.ProfileScreen
+import com.main.servetogether.ui.volunteerActivities.VolunteerActivity
+import com.main.servetogether.ui.volunteerActivities.OrganizedActivity
+
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -158,6 +162,27 @@ fun AppNavGraph(navController: NavHostController,
                     activityId = id
                 )
             }
+        composable(Screen.Profile.route) {
+            ProfileScreen(navController = navController)
+        }
+        //Volunteer Activity
+        composable(
+            route = Screen.VolunteerActivity.route,
+            arguments = listOf(navArgument("activityId") {
+                type = NavType.StringType
+            })
+        ) { backStackEntry ->
+            val activityId = backStackEntry.arguments?.getString("activityId")
+            VolunteerActivity(
+                navController = navController,
+                activityId = activityId!!
+            )
+        }
+
+
+        composable(Screen.OrganizedActivity.route) {
+            OrganizedActivity(navController = navController)
+        }
 
         composable(
             route = "task_detail/{taskId}",
