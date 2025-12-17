@@ -130,7 +130,13 @@ fun DonationScreen(
                         value = donorName,
                         onValueChange = { donorName = it },
                         label = { Text("Donor Name") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black,
+                            cursorColor = Color.Black
+                        )
+
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -139,7 +145,12 @@ fun DonationScreen(
                         value = amount,
                         onValueChange = { amount = it },
                         label = { Text("Donation Amount") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black,
+                            cursorColor = Color.Black
+                        )
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -149,7 +160,13 @@ fun DonationScreen(
                         onValueChange = { message = it },
                         label = { Text("Message (Optional)") },
                         modifier = Modifier.fillMaxWidth(),
-                        minLines = 3
+                        minLines = 3,
+                        colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = Color.Black,
+                                unfocusedTextColor = Color.Black,
+                                cursorColor = Color.Black
+                        )
+
                     )
                 }
 
