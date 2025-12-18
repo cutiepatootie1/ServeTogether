@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
@@ -30,6 +29,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -42,7 +42,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
@@ -55,66 +57,41 @@ import com.main.servetogether.ui.theme.White
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.LaunchedEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateAccScreen(navController: NavController,
-                    viewModel: SignUpViewModel = viewModel(),
-                    role: String
+fun CreateAccScreen(
+    navController: NavController,
+    role: String
 ) {
-    // Context for Toasts
     val context = LocalContext.current
-    // Watch the ViewModel state
-    val uiState by viewModel.signUpState.collectAsState()
     val displayRole = role.replaceFirstChar { it.uppercase() }
 
-    LaunchedEffect(uiState) {
-        when (uiState) {
-            is SignUpState.Success -> {
-                Toast.makeText(context, "Account Created!", Toast.LENGTH_SHORT).show()
-                viewModel.resetState()
-                navController.navigate("home_screen/$role") {
-                    popUpTo(0) {
-                        inclusive = true
-                    }
-                }
-            }
-            is SignUpState.Error -> {
-                val errorMsg = (uiState as SignUpState.Error).message
-                Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
-                viewModel.resetState()
-            }
-            else -> {} // Do nothing for Idle/Loading inside this listener
-        }
-    }
+    // Track which step we're on
+    var currentStep by remember { mutableStateOf(1) }
 
-    // Form Variables
-    var email by remember { mutableStateOf(("")) }
+    // Step 1 Variables
     var fullName by remember { mutableStateOf("") }
-    var gender by remember { mutableStateOf("") }
-    var genderExpanded by remember { mutableStateOf(false) }
+    var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
-    var school by remember { mutableStateOf("") }
-    var studentId by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
+
+    // Step 2 Variables
+    var gender by remember { mutableStateOf("") }
+    var genderExpanded by remember { mutableStateOf(false) }
     var birthdate by remember { mutableStateOf<Long?>(null) }
+    var school by remember { mutableStateOf("") }
+    var studentId by remember { mutableStateOf("") }
     var agreeTerms by remember { mutableStateOf(false) }
 
     val genderOptions = listOf("Male", "Female", "Other", "Prefer not to say")
-
-    // UI States
-    val showWarningPop = remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
     val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
     val openDialog = remember { mutableStateOf(false) }
-    val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = birthdate
-    )
+    val showWarningPop = remember { mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState(initialSelectedDateMillis = birthdate)
 
     Box(
         modifier = Modifier
@@ -122,7 +99,6 @@ fun CreateAccScreen(navController: NavController,
             .background(White),
         contentAlignment = Alignment.TopCenter
     ) {
-
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
@@ -130,245 +106,139 @@ fun CreateAccScreen(navController: NavController,
                 .fillMaxWidth()
                 .verticalScroll(scrollState)
         ) {
-
+            // Header
             Text(
                 text = "Sign up as $displayRole",
                 modifier = Modifier.padding(vertical = 16.dp),
                 style = MaterialTheme.typography.titleLarge.copy(
                     color = MaterialTheme.colorScheme.secondary,
-                    fontSize = 24.sp
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
                 )
             )
 
-            // EMAIL FIELD
-            Column(modifier = Modifier.padding(8.dp)) {
-                Text(
-                    text = "Email",
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    singleLine = true,
+            // Progress Indicator
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        "Step $currentStep of 2",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray
+                    )
+                    Text(
+                        "${(currentStep * 50)}%",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                LinearProgressIndicator(
+                    progress = { currentStep * 0.5f },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                        .background(color = MaterialTheme.colorScheme.surfaceContainer),
-                    shape = RoundedCornerShape(12.dp)
+                        .padding(vertical = 8.dp),
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
 
-            // FULL NAME FIELD
-            Column(
-                modifier = Modifier.padding(8.dp)
-            ) {
+            // STEP 1: Account Credentials
+            if (currentStep == 1) {
                 Text(
-                    text = "Full Name",
+                    text = "Account Information",
+                    style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium
+                    modifier = Modifier.padding(vertical = 16.dp)
                 )
 
-                OutlinedTextField(
-                    value = fullName,
-                    onValueChange = { fullName = it },
-                    singleLine = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                        .background(color = MaterialTheme.colorScheme.surfaceContainer),
-                    shape = RoundedCornerShape(12.dp)
-                )
-            }
-
-            // GENDER DROPDOWN
-            Column(
-                modifier = Modifier.padding(8.dp)
-            ) {
-                Text(
-                    text = "Gender",
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-
-                Box {
+                // Full Name
+                Column(modifier = Modifier.padding(8.dp)) {
+                    Text(
+                        text = "Full Name",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                     OutlinedTextField(
-                        value = gender,
-                        onValueChange = {},
-                        readOnly = true,
+                        value = fullName,
+                        onValueChange = { fullName = it },
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                            .background(color = MaterialTheme.colorScheme.surfaceContainer),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                }
+
+                // Email
+                Column(modifier = Modifier.padding(8.dp)) {
+                    Text(
+                        text = "Email",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                            .background(color = MaterialTheme.colorScheme.surfaceContainer),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                }
+
+                // Password
+                Column(modifier = Modifier.padding(8.dp)) {
+                    Text(
+                        text = "Password",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         singleLine = true,
                         trailingIcon = {
-                            IconButton(onClick = { genderExpanded = !genderExpanded }) {
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
                                 Icon(
-                                    imageVector = Icons.Default.ArrowDropDown,
-                                    contentDescription = "Select Gender"
+                                    imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                    contentDescription = if (passwordVisible) "Hide password" else "Show password"
                                 )
                             }
                         },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp)
-                            .background(color = MaterialTheme.colorScheme.surfaceContainer)
-                            .clickable { genderExpanded = true },
+                            .background(color = MaterialTheme.colorScheme.surfaceContainer),
                         shape = RoundedCornerShape(12.dp)
                     )
-
-                    DropdownMenu(
-                        expanded = genderExpanded,
-                        onDismissRequest = { genderExpanded = false },
-                        modifier = Modifier.fillMaxWidth(0.85f)
-                    ) {
-                        genderOptions.forEach { option ->
-                            DropdownMenuItem(
-                                text = { Text(option) },
-                                onClick = {
-                                    gender = option
-                                    genderExpanded = false
-                                }
-                            )
-                        }
-                    }
                 }
-            }
 
-            // PASSWORD FIELD
-            Column(
-                modifier = Modifier.padding(8.dp)
-            ) {
-                Text(
-                    text = "Password",
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-
-                OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                    singleLine = true,
-                    trailingIcon = {
-                        val image = if (passwordVisible)
-                            Icons.Default.Visibility
-                        else Icons.Default.VisibilityOff
-
-                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                            Icon(
-                                imageVector = image,
-                                contentDescription = if (passwordVisible) "Hide password" else "Show password"
-                            )
-                        }
-
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                        .background(color = MaterialTheme.colorScheme.surfaceContainer),
-                    shape = RoundedCornerShape(12.dp)
-                )
-            }
-
-            // CONFIRM PASSWORD FIELD
-            Column(
-                modifier = Modifier.padding(8.dp)
-            ) {
-                Text(
-                    text = "Confirm Password",
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-
-                OutlinedTextField(
-                    value = confirmPassword,
-                    onValueChange = { confirmPassword = it },
-                    visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                    trailingIcon = {
-                        val image = if (confirmPasswordVisible)
-                            Icons.Default.Visibility
-                        else Icons.Default.VisibilityOff
-
-                        IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
-                            Icon(
-                                imageVector = image,
-                                contentDescription = if (confirmPasswordVisible) "Hide password" else "Show password"
-                            )
-                        }
-
-                    },
-                    singleLine = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                        .background(color = MaterialTheme.colorScheme.surfaceContainer),
-                    shape = RoundedCornerShape(12.dp)
-                )
-            }
-
-            // BIRTHDATE FIELD
-            Box(
-                modifier = Modifier
-                    .padding(8.dp)
-                    .height(65.dp)
-            ) {
-                OutlinedTextField(
-                    value = birthdate?.let { dateFormatter.format(Date(it)) } ?: "",
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Birthdate", color = MaterialTheme.colorScheme.secondary) },
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(color = MaterialTheme.colorScheme.surface),
-                    trailingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.CalendarToday,
-                            contentDescription = "Select Birthdate"
-                        )
-                    },
-                    shape = RoundedCornerShape(12.dp)
-                )
-
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .clickable { openDialog.value = true }
-                )
-
-                if (openDialog.value) {
-                    DatePickerDialog(
-                        onDismissRequest = { openDialog.value = false },
-                        confirmButton = {
-                            TextButton(onClick = {
-                                datePickerState.selectedDateMillis?.let { birthdate = it }
-                                openDialog.value = false
-                            }) {
-                                Text("OK")
+                // Confirm Password
+                Column(modifier = Modifier.padding(8.dp)) {
+                    Text(
+                        text = "Confirm Password",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    OutlinedTextField(
+                        value = confirmPassword,
+                        onValueChange = { confirmPassword = it },
+                        visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        singleLine = true,
+                        trailingIcon = {
+                            IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                                Icon(
+                                    imageVector = if (confirmPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                    contentDescription = if (confirmPasswordVisible) "Hide password" else "Show password"
+                                )
                             }
                         },
-                        dismissButton = {
-                            TextButton(onClick = { openDialog.value = false }) {
-                                Text("Cancel")
-                            }
-                        }
-                    ) {
-                        DatePicker(state = datePickerState)
-                    }
-                }
-            }
-
-            // SCHOOL FIELD (Only for volunteers)
-            if(role.equals("volunteer", ignoreCase = true)) {
-                Column(
-                    modifier = Modifier.padding(8.dp)
-                ) {
-                    Text(
-                        text = "School",
-                        color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-
-                    OutlinedTextField(
-                        value = school,
-                        onValueChange = { school = it },
-                        singleLine = true,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp)
@@ -377,109 +247,44 @@ fun CreateAccScreen(navController: NavController,
                     )
                 }
 
-                // STUDENT ID FIELD (Only for volunteers)
-                Column(
-                    modifier = Modifier.padding(8.dp)
-                ) {
-                    Text(
-                        text = "Student ID",
-                        color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-
-                    OutlinedTextField(
-                        value = studentId,
-                        onValueChange = { studentId = it },
-                        singleLine = true,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp)
-                            .background(color = MaterialTheme.colorScheme.surfaceContainer),
-                        shape = RoundedCornerShape(12.dp)
-                    )
-                }
-            }
-
-            // TERMS AND CONDITIONS
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-                    .clickable {
-                        agreeTerms = !agreeTerms
-                    }
-            ) {
-                RoundedCheckbox(
-                    checked = agreeTerms,
-                    onCheckedChange = { agreeTerms = it },
-                    cornerRadius = 5.dp,
-                    modifier = Modifier.padding(horizontal = 10.dp)
-                )
-                Text(
-                    "I have read the terms and conditions",
-                    color = MaterialTheme.colorScheme.primary,
-                    fontSize = 14.sp
-                )
-            }
-
-            // CREATE ACCOUNT BUTTON
-            Button(
-                onClick = {
-                    if (!agreeTerms) {
-                        showWarningPop.value = true
-                        return@Button
-                    }
-                    if (password != confirmPassword) {
-                        Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
-                        return@Button
-                    }
-                    if (fullName.isBlank()) {
-                        Toast.makeText(context, "Please enter your full name", Toast.LENGTH_SHORT).show()
-                        return@Button
-                    }
-                    if (gender.isBlank()) {
-                        Toast.makeText(context, "Please select your gender", Toast.LENGTH_SHORT).show()
-                        return@Button
-                    }
-
-                    // Firebase signup
-                    viewModel.signUp(email, password, fullName, school, birthdate, gender, role, studentId)
-
-                },
-                enabled = uiState !is SignUpState.Loading,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-            ) {
-                if (uiState is SignUpState.Loading) {
-                    CircularProgressIndicator(color = White)
-                } else {
-                    Text("Create Account")
-                }
-            }
-
-            if (showWarningPop.value) {
-                AlertDialog(
-                    onDismissRequest = {
-                        showWarningPop.value = false
-                    },
-                    title = {
-                        Text("Terms and Conditions")
-                    },
-                    text = {
-                        Text("Please read the terms and conditions before proceeding")
-                    },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                showWarningPop.value = false
-                            }
-                        ) {
-                            Text("Dismiss")
+                // Next Button
+                Button(
+                    onClick = {
+                        if (fullName.isBlank()) {
+                            Toast.makeText(context, "Please enter your full name", Toast.LENGTH_SHORT).show()
+                            return@Button
                         }
+                        if (email.isBlank()) {
+                            Toast.makeText(context, "Please enter your email", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
+                        if (password.isBlank()) {
+                            Toast.makeText(context, "Please enter a password", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
+                        if (password != confirmPassword) {
+                            Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
+                        if (password.length < 6) {
+                            Toast.makeText(context, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
+                        currentStep = 2
                     },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Text("Next: Personal Details", fontSize = 16.sp)
+                }
+            }
+
+            // Navigate to Step 2 screen
+            if (currentStep == 2) {
+                navController.navigate(
+                    "create_account_step2/${role}/${fullName}/${email}/${password}"
                 )
             }
         }

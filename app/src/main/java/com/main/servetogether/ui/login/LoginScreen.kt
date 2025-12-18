@@ -27,7 +27,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
@@ -38,39 +37,17 @@ import com.main.servetogether.ui.theme.White
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(navController: NavController,
-                viewModel: LoginViewModel = viewModel()
- ) {
+fun LoginScreen(navController: NavController) {
     val context = LocalContext.current
+    val auth = FirebaseAuth.getInstance()
+    val db = FirebaseFirestore.getInstance("servedb")
+
     // UI State
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var keepSignedIn by remember { mutableStateOf(false) }
     var passwordVisible by remember { mutableStateOf(false) }
-
-    // Observer ViewModel State
-    val loginState by viewModel.loginState.collectAsState()
-
-    // Handle Side Effects (Navigation / Toasts)
-    LaunchedEffect(loginState) {
-        when (loginState) {
-            is LoginState.Success -> {
-                Toast.makeText(context, "Login Successful!", Toast.LENGTH_SHORT).show()
-                viewModel.resetState()
-
-                // Navigate to Home and clear backstack
-                navController.navigate("home_screen") {
-                    popUpTo(0) { inclusive = true }
-                }
-            }
-            is LoginState.Error -> {
-                val errorMsg = (loginState as LoginState.Error).message
-                Toast.makeText(context, "Error: $errorMsg", Toast.LENGTH_LONG).show()
-                viewModel.resetState()
-            }
-            else -> {}
-        }
-    }
+    var isLoading by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -86,21 +63,20 @@ fun LoginScreen(navController: NavController,
         ) {
             // Logo
             Image(
-                painter = painterResource(id = R.drawable.servetogether_logo), // Replace with your logo resource
+                painter = painterResource(id = R.drawable.servetogether_logo),
                 contentDescription = "ServeTogether Logo",
                 modifier = Modifier
                     .size(300.dp)
                     .padding(bottom = 16.dp)
             )
 
-
-            // email field
+            // Email field
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                // Changed placeholder to Email
                 placeholder = { Text("Email", color = MaterialTheme.colorScheme.secondary) },
                 singleLine = true,
+                enabled = !isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 4.dp)
@@ -115,6 +91,7 @@ fun LoginScreen(navController: NavController,
                 placeholder = { Text("Password", color = MaterialTheme.colorScheme.secondary) },
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 singleLine = true,
+                enabled = !isLoading,
                 trailingIcon = {
                     val image = if (passwordVisible)
                         Icons.Default.Visibility
@@ -126,7 +103,6 @@ fun LoginScreen(navController: NavController,
                             contentDescription = if (passwordVisible) "Hide password" else "Show password"
                         )
                     }
-
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -155,41 +131,51 @@ fun LoginScreen(navController: NavController,
                 )
             }
 
-            // Log in button
+            // Log in button - FIXED VERSION
             Button(
                 onClick = {
-                    val auth = FirebaseAuth.getInstance()
-                    val db = FirebaseFirestore.getInstance("servedb")
+                    if (email.isBlank() || password.isBlank()) {
+                        Toast.makeText(context, "Please enter email and password", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+
+                    isLoading = true
 
                     auth.signInWithEmailAndPassword(email, password)
                         .addOnSuccessListener { authResult ->
                             val uid = authResult.user?.uid
 
-                            if (uid != null){
+                            if (uid != null) {
                                 db.collection("users").document(uid).get()
                                     .addOnSuccessListener { document ->
-                                        val role = document.getString("role") ?: "user"
-                                        navController.navigate("home_screen/$role"){
-                                            popUpTo(0){inclusive = true}
+                                        isLoading = false
+                                        val role = document.getString("role") ?: "volunteer"
+                                        Toast.makeText(context, "Login Successful!", Toast.LENGTH_SHORT).show()
+                                        navController.navigate("home_screen/$role") {
+                                            popUpTo(0) { inclusive = true }
                                         }
                                     }
-                                    .addOnFailureListener {
-                                        Toast.makeText(context, "Error", Toast.LENGTH_SHORT).show()
+                                    .addOnFailureListener { e ->
+                                        isLoading = false
+                                        Toast.makeText(context, "Error loading user data: ${e.message}", Toast.LENGTH_SHORT).show()
                                     }
+                            } else {
+                                isLoading = false
+                                Toast.makeText(context, "Login error", Toast.LENGTH_SHORT).show()
                             }
                         }
                         .addOnFailureListener { e ->
-                            Toast.makeText(context, "Login Failed: ${e.message}",Toast.LENGTH_SHORT).show()
+                            isLoading = false
+                            Toast.makeText(context, "Login Failed: ${e.message}", Toast.LENGTH_SHORT).show()
                         }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                // Disable button if loading
-                enabled = loginState !is LoginState.Loading
+                enabled = !isLoading
             ) {
-                if (loginState is LoginState.Loading) {
+                if (isLoading) {
                     CircularProgressIndicator(
                         color = Color.White,
                         modifier = Modifier.size(24.dp)
@@ -227,7 +213,6 @@ fun LoginScreen(navController: NavController,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
-
             }
         }
     }
