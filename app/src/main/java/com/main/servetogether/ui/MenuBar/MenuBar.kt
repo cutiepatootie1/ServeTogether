@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.main.servetogether.R
 import com.main.servetogether.shared.UserViewModel
+import androidx.compose.ui.unit.TextUnit
 
 @Composable
 fun MenuBar(
@@ -78,7 +79,7 @@ fun MenuBar(
             .width(300.dp)
             .background(Color.White)
     ) {
-        // 🎨 Gradient Header with Logo and Profile
+        //  Gradient Header with Logo and Profile
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -117,7 +118,7 @@ fun MenuBar(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 📝 User Name
+            //  User Name
             Text(
                 text = currentUser.ifEmpty { "User" },
                 fontWeight = FontWeight.Bold,
@@ -127,7 +128,7 @@ fun MenuBar(
                 overflow = TextOverflow.Ellipsis
             )
 
-            // 🏫 School/Role
+            //  School/Role
             Text(
                 text = userSchool.ifEmpty { role.replaceFirstChar { it.uppercase() } },
                 fontSize = 14.sp,
@@ -292,7 +293,7 @@ fun MenuItem(
     text: String,
     darkBlue: Color,
     trailingIcon: ImageVector? = null,
-    fontSize: kotlin.Unit.sp = 15.sp,
+    fontSize: TextUnit = 15.sp, // <--- Fixed line (changed from kotlin.Unit.sp)
     onClick: () -> Unit = {}
 ) {
     Row(
@@ -326,6 +327,7 @@ fun MenuItem(
         }
     }
 }
+
 
 @Composable
 fun DropdownItem(text: String, onClick: () -> Unit) {
