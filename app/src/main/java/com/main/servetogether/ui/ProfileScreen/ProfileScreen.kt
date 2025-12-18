@@ -2,7 +2,6 @@ package com.main.servetogether.ui.ProfileScreen
 
 import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -74,9 +73,10 @@ fun ProfileScreen(
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
 
-    // Load profile data when screen opens
+    // AUTO-REFRESH: Load profile data when screen opens
     LaunchedEffect(Unit) {
         viewModel.loadProfileData()
+        viewModel.loadUserData() // Also refresh user data for MenuBar
     }
 
     // Show error messages
@@ -101,22 +101,23 @@ fun ProfileScreen(
 
                         when (route) {
                             "profile" -> {
-                                // Already on profile
+                                // Already on profile - just refresh
+                                viewModel.loadProfileData()
                             }
-                            "activities" -> {
-                                navController.navigate("activities_screen")
+                            "home_screen/volunteer", "home_screen/organization" -> {
+                                navController.navigate(route)
                             }
                             "start_new_act" -> {
                                 navController.navigate("create_activity")
                             }
-                            "organized_activities" -> {
-                                navController.navigate("organized_activities")
+                            "organized_activity" -> {
+                                navController.navigate("organized_activity")
                             }
-                            "donation_screen/\$role\"" -> {
-                                navController.navigate("donation_screen/${currentRole ?: "volunteer"}")
+                            "donation_screen/volunteer", "donation_screen/organization" -> {
+                                navController.navigate(route)
                             }
                             "support" -> {
-                                // Navigate to support screen
+                                navController.navigate(Screen.Support.route)
                             }
                             "logout" -> {
                                 FirebaseAuth.getInstance().signOut()
