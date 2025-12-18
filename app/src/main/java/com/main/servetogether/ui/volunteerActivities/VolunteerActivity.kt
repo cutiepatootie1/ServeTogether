@@ -3,16 +3,7 @@ package com.main.servetogether.ui.volunteerActivities
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,55 +11,24 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalDrawerSheet
-import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButtonDefaults.Icon
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberDrawerState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.main.servetogether.data.model.VolunteerTask
-import com.main.servetogether.data.model.VolunteeringActivity
 import com.main.servetogether.navigation.Screen
 import com.main.servetogether.shared.UserViewModel
 import com.main.servetogether.ui.MenuBar.MenuBar
@@ -83,11 +43,10 @@ fun VolunteerActivity(
     userViewModel: UserViewModel = viewModel()
 ) {
     val currentRole by userViewModel.userRole.collectAsState()
-    val serveBlue = Color(0xFF004481)
-    val backgroundLight = Color(0xFFF5F5F5)
+    val darkBlue = Color(0xFF0D47A1)
+    val lightBlue = Color(0xFF1976D2)
+    val backgroundLight = Color(0xFFF5F7FA)
     val activityD by viewModel.currentActivity.collectAsState()
-//    val activitiesList by viewModel.userActivities.collectAsState()
-//    val activity = activitiesList.find { it.id == activityId }
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -96,6 +55,7 @@ fun VolunteerActivity(
         viewModel.loadActivityDetails(activityId)
         viewModel.fetchUserActivities()
     }
+
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -106,7 +66,9 @@ fun VolunteerActivity(
                         scope.launch { drawerState.close() }
                         if (route == "logout") {
                             FirebaseAuth.getInstance().signOut()
-                            navController.navigate(Screen.Login.route)
+                            navController.navigate(Screen.Login.route) {
+                                popUpTo(0) { inclusive = true }
+                            }
                         } else if (route == "start_new_act") {
                             navController.navigate("create_activity")
                         } else {
@@ -122,12 +84,21 @@ fun VolunteerActivity(
                 CenterAlignedTopAppBar(
                     title = {
                         Text(
-                            text = "ServeTogether",
+                            text = "Activity Details",
                             color = Color.White,
                             fontWeight = FontWeight.Bold
                         )
                     },
                     navigationIcon = {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = Color.White
+                            )
+                        }
+                    },
+                    actions = {
                         IconButton(onClick = {
                             scope.launch { drawerState.open() }
                         }) {
@@ -138,29 +109,19 @@ fun VolunteerActivity(
                             )
                         }
                     },
-                    actions = {
-                        IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack, // Or appropriate back icon
-                                contentDescription = "Back",
-                                tint = Color.White
-                            )
-                        }
-                    },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = serveBlue
+                        containerColor = darkBlue
                     )
                 )
             },
             containerColor = backgroundLight
         ) { paddingValues ->
             if (activityD == null) {
-                // Show loading or error if not found
                 Box(
                     modifier = Modifier.fillMaxSize().padding(paddingValues),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("Loading activity details...")
+                    CircularProgressIndicator(color = darkBlue)
                 }
             } else {
                 val activity = activityD!!
@@ -169,143 +130,303 @@ fun VolunteerActivity(
                         .padding(paddingValues)
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
-                        .padding(24.dp), // General padding for the content
-                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-
-                    // 1. TITLE
-                    Text(
-                        text = activity.title,
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF2C2C2C)
-                        ),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    // 2. IMAGE
-                    // Replace R.drawable.placeholder_image with your actual image resource
-                    // Or use AsyncImage (Coil) if loading from URL
-                    Card(
-                        shape = RoundedCornerShape(12.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                        modifier = Modifier.fillMaxWidth().height(200.dp)
+                    // Hero Section with Gradient
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(darkBlue, lightBlue)
+                                )
+                            )
+                            .padding(24.dp)
                     ) {
-                        // Placeholder using a Box with color if you don't have an image yet
-                        Box(
-                            modifier = Modifier.fillMaxSize().background(Color.Gray),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("Activity Image", color = Color.White)
-                            /* Uncomment this when you have an image
-                    Image(
-                        painter = painterResource(id = R.drawable.your_image),
-                        contentDescription = "Activity Image",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                    */
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = activity.title,
+                                style = MaterialTheme.typography.headlineMedium.copy(
+                                    fontSize = 28.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                ),
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            // Registered Members Badge
+                            Card(
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = Color.White.copy(alpha = 0.2f)
+                                )
+                            ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier.padding(16.dp)
+                                ) {
+                                    Text(
+                                        text = "Registered Volunteers",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color.White.copy(alpha = 0.9f)
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier
+                                            .size(70.dp)
+                                            .clip(CircleShape)
+                                            .background(Color.White)
+                                    ) {
+                                        Text(
+                                            text = "${activity.registeredMembers.size}",
+                                            style = MaterialTheme.typography.headlineLarge.copy(
+                                                color = darkBlue,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "of ${activity.maximumPersonnel}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color.White.copy(alpha = 0.9f)
+                                    )
+                                }
+                            }
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(32.dp))
+                    // Content Section
+                    Column(modifier = Modifier.padding(16.dp)) {
 
-                    // 3. REGISTERED COUNT (Replaces Completion Level)
-                    Text(
-                        text = "Number of registered students", // Fixed grammar from "Numbered"
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = serveBlue
+                        // Info Cards Section
+                        val dateFormat = java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.getDefault())
+                        val startStr = if (activity.startDate > 0) dateFormat.format(java.util.Date(activity.startDate)) else "TBD"
+                        val endStr = if (activity.endDate > 0) dateFormat.format(java.util.Date(activity.endDate)) else "TBD"
+
+                        InfoCard(
+                            icon = Icons.Default.CalendarToday,
+                            label = "Duration",
+                            value = "$startStr - $endStr",
+                            darkBlue = darkBlue
                         )
-                    )
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
 
-                    // The Circle Badge
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .size(60.dp)
-                            .clip(CircleShape)
-                            .background(serveBlue)
-                    ) {
-                        Text(
-                            text = "${activity.registeredMembers.size}",
-                            style = MaterialTheme.typography.headlineMedium.copy(
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold
+                        InfoCard(
+                            icon = Icons.Default.LocationOn,
+                            label = "Location",
+                            value = activity.location,
+                            darkBlue = darkBlue
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            SmallInfoCard(
+                                icon = Icons.Default.Group,
+                                label = "Min",
+                                value = "${activity.minimumPersonnel}",
+                                darkBlue = darkBlue,
+                                modifier = Modifier.weight(1f)
                             )
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(32.dp))
-
-                    // 4. DESCRIPTION SECTION
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            text = activity.description,
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = serveBlue
+                            SmallInfoCard(
+                                icon = Icons.Default.Groups,
+                                label = "Max",
+                                value = "${activity.maximumPersonnel}",
+                                darkBlue = darkBlue,
+                                modifier = Modifier.weight(1f)
                             )
-                        )
+                        }
 
-                        Spacer(modifier = Modifier.height(8.dp))
-                        val dateFormat =
-                            java.text.SimpleDateFormat("MM/dd/yy", java.util.Locale.getDefault())
-                        val startStr =
-                            if (activity.startDate > 0) dateFormat.format(java.util.Date(activity.startDate)) else "TBD"
-                        val endStr =
-                            if (activity.endDate > 0) dateFormat.format(java.util.Date(activity.endDate)) else "TBD"
+                        Spacer(modifier = Modifier.height(24.dp))
 
-                        // Details List
-                        DetailRow("Minimum Personnel:", "${activity.minimumPersonnel}", serveBlue)
-                        DetailRow("Maximum Personnel:", "${activity.maximumPersonnel}", serveBlue)
-                        DetailRow("Date:", "$startStr - $endStr", serveBlue)
-                        DetailRow("Location:", activity.location, serveBlue)
-                    }
-
-                    Spacer(modifier = Modifier.height(40.dp))
-
-                    // 5. REGISTER BUTTON
-                    Button(
-                        onClick = {
-                            viewModel.registerForActivity(
-                                activity = activity,
-                                onResult = { message ->
-                                    // This runs when the logic finishes (Success or Failure)
-                                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                        // Description Section
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.Description,
+                                        contentDescription = null,
+                                        tint = darkBlue,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = "About This Activity",
+                                        style = MaterialTheme.typography.titleMedium.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            color = darkBlue
+                                        )
+                                    )
                                 }
-                            )
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = serveBlue),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        val isRegistered = activity.registeredMembers.contains(FirebaseAuth.getInstance().uid)
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text(
+                                    text = activity.description,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color.DarkGray,
+                                    lineHeight = 22.sp
+                                )
+                            }
+                        }
 
-                        Text(
-                            text = if (isRegistered) "REGISTERED" else "REGISTER",
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 1.sp
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        // Register Button
+                        val isRegistered = activity.registeredMembers.contains(FirebaseAuth.getInstance().uid)
+                        Button(
+                            onClick = {
+                                viewModel.registerForActivity(
+                                    activity = activity,
+                                    onResult = { message ->
+                                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                    }
+                                )
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isRegistered) Color(0xFF4CAF50) else darkBlue
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            enabled = !isRegistered
+                        ) {
+                            Icon(
+                                imageVector = if (isRegistered) Icons.Default.CheckCircle else Icons.Default.HowToReg,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp)
                             )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = if (isRegistered) "ALREADY REGISTERED" else "REGISTER NOW",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 0.5.sp
+                                )
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        // Tasks Section
+                        TaskListSection(
+                            activityId = activityId,
+                            onClick = { taskId ->
+                                navController.navigate("task_detail/$taskId")
+                            }
                         )
                     }
-
-                    Spacer(modifier = Modifier.height(24.dp)) // Bottom spacing
-
-                    TaskListSection(activityId, onClick = { taskId ->
-                        navController.navigate("task_detail/${taskId}")
-                    } )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun InfoCard(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    value: String,
+    darkBlue: Color
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(darkBlue.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = darkBlue,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Color.Gray
+                )
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = darkBlue,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun SmallInfoCard(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    value: String,
+    darkBlue: Color,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(darkBlue.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = darkBlue,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = Color.Gray
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleMedium,
+                color = darkBlue,
+                fontWeight = FontWeight.Bold
+            )
         }
     }
 }
@@ -313,93 +434,175 @@ fun VolunteerActivity(
 @Composable
 fun TaskListSection(
     activityId: String,
-    viewModel: TaskViewModel = viewModel(), // Inject TaskViewModel
+    viewModel: TaskViewModel = viewModel(),
     userViewModel: UserViewModel = viewModel(),
     onClick: (String) -> Unit
 ) {
     val currentRole by userViewModel.userRole.collectAsState()
-    // 1. Observe the list
     val tasks by viewModel.tasks.collectAsState()
-    var showDialog by remember { mutableStateOf(false)}
+    var showDialog by remember { mutableStateOf(false) }
+    val darkBlue = Color(0xFF0D47A1)
 
-    // 2. Load data once
     LaunchedEffect(activityId) {
         viewModel.loadTasks(activityId)
     }
 
-    Column {
-        Text("Tasks", style = MaterialTheme.typography.titleMedium)
-
-        // LIST OF TASKS
-        tasks.forEach { task ->
-            if (tasks.isEmpty()) {
-                Text("No tasks yet.", color = Color.Gray, modifier = Modifier.padding(vertical = 8.dp))
-            } else {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().padding(8.dp)
-                        .clickable{onClick(task.id)}
-                ) {
-                    // Checkbox for Update
-                    Checkbox(
-                        checked = task.isCompleted,
-                        onCheckedChange = { viewModel.toggleTaskStatus(task) }
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Assignment,
+                        contentDescription = null,
+                        tint = darkBlue,
+                        modifier = Modifier.size(20.dp)
                     )
-
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = task.title,
-                        modifier = Modifier.weight(1f),
-                        textDecoration = if (task.isCompleted) TextDecoration.LineThrough else null
+                        text = "Tasks",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = darkBlue
+                        )
                     )
-                    if(currentRole == "organization") {
-                        // Delete Button
-                        IconButton(onClick = { viewModel.deleteTask(task.id) }) {
-                            Icon(Icons.Default.Delete, "Delete")
-                        }
+                }
+
+                if (currentRole == "organization") {
+                    TextButton(onClick = { showDialog = true }) {
+                        Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Add Task")
                     }
-                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Details", tint = Color.LightGray)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            if (tasks.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Default.Assignment,
+                            contentDescription = null,
+                            tint = Color.Gray.copy(alpha = 0.5f),
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "No tasks yet",
+                            color = Color.Gray,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+            } else {
+                tasks.forEach { task ->
+                    TaskItem(
+                        task = task,
+                        currentRole = currentRole,
+                        onToggle = { viewModel.toggleTaskStatus(task) },
+                        onDelete = { viewModel.deleteTask(task.id) },
+                        onClick = { onClick(task.id) }
+                    )
+                    Divider(modifier = Modifier.padding(vertical = 8.dp))
                 }
             }
         }
-        if(currentRole == "organization") {
-            TextButton(onClick = { showDialog = true }) {
-                Icon(Icons.Default.Add, null, modifier = Modifier.size(16.dp))
-                Spacer(modifier = Modifier.width(4.dp))
-                Text("Add Task")
+    }
+
+    if (showDialog) {
+        AddTaskDialog(
+            onDismiss = { showDialog = false },
+            onConfirm = { title, description ->
+                viewModel.addTasks(title, description, activityId)
+                showDialog = false
+            }
+        )
+    }
+}
+
+@Composable
+fun TaskItem(
+    task: VolunteerTask,
+    currentRole: String?,
+    onToggle: () -> Unit,
+    onDelete: () -> Unit,
+    onClick: () -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(vertical = 4.dp)
+    ) {
+        Checkbox(
+            checked = task.isCompleted,
+            onCheckedChange = { onToggle() }
+        )
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = task.title,
+                style = MaterialTheme.typography.bodyLarge,
+                textDecoration = if (task.isCompleted) TextDecoration.LineThrough else null,
+                color = if (task.isCompleted) Color.Gray else Color.DarkGray
+            )
+            if (task.description.isNotBlank()) {
+                Text(
+                    text = task.description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.Gray,
+                    maxLines = 1
+                )
             }
         }
 
-        // 3. SHOW DIALOG IF STATE IS TRUE
-        if (showDialog) {
-            AddTaskDialog(
-                onDismiss = { showDialog = false },
-                onConfirm = { title, dihscription ->
-                    viewModel.addTasks(title, dihscription, activityId)
-                    showDialog = false // Close dialog after adding
-                }
-            )
+        if (currentRole == "organization") {
+            IconButton(onClick = onDelete) {
+                Icon(
+                    Icons.Default.Delete,
+                    "Delete",
+                    tint = Color(0xFFFF5722)
+                )
+            }
         }
+
+        Icon(
+            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            "Details",
+            tint = Color.LightGray
+        )
     }
 }
 
 @Composable
 fun AddTaskDialog(
     onDismiss: () -> Unit,
-    onConfirm: (title: String, time: String) -> Unit
+    onConfirm: (title: String, description: String) -> Unit
 ) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(text = "New Task") },
+        title = { Text("New Task") },
         text = {
             Column {
-                Text("What needs to be done?", style = MaterialTheme.typography.bodyMedium)
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // 1. Task Title Input
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
@@ -407,22 +610,20 @@ fun AddTaskDialog(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // 2. Estimated Time Input
+                Spacer(modifier = Modifier.height(12.dp))
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
-                    label = { Text("Enter instructions or what it entails") },
+                    label = { Text("Description") },
                     modifier = Modifier.fillMaxWidth(),
+                    maxLines = 3
                 )
             }
         },
         confirmButton = {
             TextButton(
                 onClick = { onConfirm(title, description) },
-                enabled = title.isNotBlank() // Disable if title is empty
+                enabled = title.isNotBlank()
             ) {
                 Text("Add")
             }
@@ -433,24 +634,4 @@ fun AddTaskDialog(
             }
         }
     )
-}
-
-// Helper Composable for the description rows to keep code clean
-@Composable
-fun DetailRow(label: String, value: String, labelColor: Color) {
-    Row(modifier = Modifier.padding(vertical = 4.dp)) {
-        Text(
-            text = "$label ",
-            style = MaterialTheme.typography.bodyMedium.copy(
-                fontWeight = FontWeight.SemiBold,
-                color = labelColor
-            )
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium.copy(
-                color = Color.DarkGray
-            )
-        )
-    }
 }

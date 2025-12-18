@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -61,7 +60,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.main.servetogether.navigation.Screen
 import com.main.servetogether.shared.UserViewModel
 import com.main.servetogether.ui.MenuBar.MenuBar
-import com.main.servetogether.ui.theme.White
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -69,61 +67,53 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateActivityScreen(navController: NavController,
-                         viewModel: ActivityViewModel = viewModel(),
-                         userViewModel: UserViewModel = viewModel(),
-                         role: String)
-{
+fun CreateActivityScreen(
+    navController: NavController,
+    viewModel: ActivityViewModel = viewModel(),
+    userViewModel: UserViewModel = viewModel(),
+    role: String
+) {
     val context = LocalContext.current
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState: ActivityCreateState by viewModel.uiState.collectAsState()
     val currentRole by userViewModel.userRole.collectAsState()
 
     LaunchedEffect(uiState) {
-        when (uiState) {
+        when (val state = uiState) {
             is ActivityCreateState.Success -> {
-                val newId = (uiState as ActivityCreateState.Success).activityId
-              Toast.makeText(context, "New activity created",Toast.LENGTH_SHORT)
-                navController.navigate("activity_detail/$newId"){
-                    popUpTo("create_activity"){inclusive = true}
+                Toast.makeText(context, "New activity created!", Toast.LENGTH_SHORT).show()
+                navController.navigate("activity_detail/${state.activityId}") {
+                    popUpTo("create_activity") { inclusive = true }
                 }
                 viewModel.resetState()
             }
             is ActivityCreateState.Error -> {
-                val errorMsg = (uiState as ActivityCreateState.Error).message
+                Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
+                viewModel.resetState()
             }
-
             else -> {}
         }
     }
 
     // FORM VARIABLES
-    var title by remember { mutableStateOf(("")) }
-    var description by remember { mutableStateOf(("")) }
-    var location by remember { mutableStateOf(("")) }
-    var startDate by remember { mutableStateOf<Long?>(null)  }
-    var endDate by remember { mutableStateOf<Long?>(null)  }
-    var minimumPersonnel by remember { mutableStateOf(("")) }
-    var maximumPersonnel by remember {mutableStateOf((""))}
+    var title by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
+    var location by remember { mutableStateOf("") }
+    var startDate by remember { mutableStateOf<Long?>(null) }
+    var endDate by remember { mutableStateOf<Long?>(null) }
+    var minimumPersonnel by remember { mutableStateOf("") }
+    var maximumPersonnel by remember { mutableStateOf("") }
 
     // Control Dialog Visibility
     var showStartPicker by remember { mutableStateOf(false) }
     var showEndPicker by remember { mutableStateOf(false) }
 
     //UI STATE
-    val showWarningPop = remember {mutableStateOf(false)}
     val scrollState = rememberScrollState()
     val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    val openDialog = remember { mutableStateOf(false) }
-    val startDatePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = startDate
-    )
-    val endDatePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = endDate
-    )
-    // FRONT END HERE
 
+    // FRONT END HERE
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -134,7 +124,9 @@ fun CreateActivityScreen(navController: NavController,
                         scope.launch { drawerState.close() }
                         if (route == "logout") {
                             FirebaseAuth.getInstance().signOut()
-                            navController.navigate(Screen.Login.route)
+                            navController.navigate(Screen.Login.route) {
+                                popUpTo(0) { inclusive = true }
+                            }
                         } else {
                             navController.navigate(route)
                         }
@@ -143,212 +135,214 @@ fun CreateActivityScreen(navController: NavController,
             }
         }
     ) {
-//        Scaffold(
-//            topBar = {
-//                val darkBlue = Color(0xFF0D47A1)
-//                CenterAlignedTopAppBar(
-//                    title = {
-//                        Text(
-//                            text = "Create Activity",
-//                            color = Color.White,
-//                            fontWeight = FontWeight.Bold
-//                        )
-//                    },
-//                    navigationIcon = {
-//                        IconButton(onClick = {
-//                            scope.launch { drawerState.open() }
-//                        }) {
-//                            Icon(
-//                                imageVector = Icons.Default.Menu,
-//                                contentDescription = "Menu",
-//                                tint = Color.White
-//                            )
-//                        }
-//                    },
-//                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-//                        containerColor = darkBlue
-//                    )
-//                )
-//            },
-//            containerColor = Color(0xFFF0F2F5),
-//            ) { padding ->
-            Scaffold(
-                topBar = {
-                    CenterAlignedTopAppBar(
-                        title = { Text("Create Activity") },
-                        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer
+        Scaffold(
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(
+                            "Create Activity",
+                            fontWeight = FontWeight.Bold
                         )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            scope.launch { drawerState.open() }
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Menu,
+                                contentDescription = "Menu"
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = Color.White,
+                        navigationIconContentColor = Color.White
                     )
-                }
-            ) { padding ->
-                Column(
+                )
+            }
+        ) { padding ->
+            Column(
+                modifier = Modifier
+                    .padding(padding)
+                    .padding(16.dp)
+                    .fillMaxSize()
+                    .verticalScroll(scrollState),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // START OF FORM
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text("Title") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text("Description") },
                     modifier = Modifier
-                        .padding(padding)
-                        .padding(16.dp)
-                        .fillMaxSize()
-                        .verticalScroll(scrollState),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .fillMaxWidth()
+                        .height(120.dp),
+                    maxLines = 5
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = location,
+                    onValueChange = { location = it },
+                    label = { Text("Location") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // --- DATE PICKERS ROW ---
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    // START OF FORM
-                    OutlinedTextField(
-                        value = title,
-                        onValueChange = { title = it },
-                        label = { Text("Title") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    OutlinedTextField(
-                        value = description,
-                        onValueChange = { description = it },
-                        label = { Text("Description") },
-                        modifier = Modifier.fillMaxWidth().height(120.dp)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    OutlinedTextField(
-                        value = location,
-                        onValueChange = { location = it },
-                        label = { Text("Location") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    // --- DATE PICKERS ROW ---
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        // Start Date Input
-                        Box(modifier = Modifier.weight(1f).padding(end = 4.dp)) {
-                            OutlinedTextField(
-                                value = startDate?.let { dateFormatter.format(Date(it)) } ?: "",
-                                onValueChange = {},
-                                readOnly = true,
-                                label = { Text("Start Date") },
-                                trailingIcon = { Icon(Icons.Default.CalendarToday, null) },
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                            // Invisible box to catch clicks
-                            Box(
-                                modifier = Modifier.matchParentSize()
-                                    .clickable { showStartPicker = true })
-                        }
-
-                        // End Date Input
-                        Box(modifier = Modifier.weight(1f).padding(start = 4.dp)) {
-                            OutlinedTextField(
-                                value = endDate?.let { dateFormatter.format(Date(it)) } ?: "",
-                                onValueChange = {},
-                                readOnly = true,
-                                label = { Text("End Date") },
-                                trailingIcon = { Icon(Icons.Default.CalendarToday, null) },
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                            Box(
-                                modifier = Modifier.matchParentSize()
-                                    .clickable { showEndPicker = true })
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    // --- PERSONNEL LIMITS ROW ---
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
+                    // Start Date Input
+                    Box(modifier = Modifier.weight(1f).padding(end = 4.dp)) {
                         OutlinedTextField(
-                            value = minimumPersonnel,
-                            onValueChange = {
-                                if (it.all { char -> char.isDigit() }) minimumPersonnel = it
-                            },
-                            label = { Text("Min People") },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.weight(1f).padding(end = 4.dp)
+                            value = startDate?.let { dateFormatter.format(Date(it)) } ?: "",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Start Date") },
+                            trailingIcon = { Icon(Icons.Default.CalendarToday, null) },
+                            modifier = Modifier.fillMaxWidth()
                         )
-
-                        OutlinedTextField(
-                            value = maximumPersonnel,
-                            onValueChange = {
-                                if (it.all { char -> char.isDigit() }) maximumPersonnel = it
-                            },
-                            label = { Text("Max People") },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.weight(1f).padding(start = 4.dp)
+                        // Invisible box to catch clicks
+                        Box(
+                            modifier = Modifier
+                                .matchParentSize()
+                                .clickable { showStartPicker = true }
                         )
                     }
-                    Spacer(modifier = Modifier.height(32.dp))
 
-                    // --- SUBMIT BUTTON ---
-                    Button(
-                        onClick = {
-                            // Convert Strings to Ints safely
-                            val min = minimumPersonnel.toIntOrNull() ?: 0
-                            val max = maximumPersonnel.toIntOrNull() ?: 0
+                    // End Date Input
+                    Box(modifier = Modifier.weight(1f).padding(start = 4.dp)) {
+                        OutlinedTextField(
+                            value = endDate?.let { dateFormatter.format(Date(it)) } ?: "",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("End Date") },
+                            trailingIcon = { Icon(Icons.Default.CalendarToday, null) },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Box(
+                            modifier = Modifier
+                                .matchParentSize()
+                                .clickable { showEndPicker = true }
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
 
-                            // Call the ViewModel function we created earlier
-                            viewModel.createActivity(
-                                title = title,
-                                description = description,
-                                location = location,
-                                startDate = startDate ?: 0L,
-                                endDate = endDate ?: 0L,
-                                minimumPersonnel = min,
-                                maximumPersonnel = max
-                            )
+                // --- PERSONNEL LIMITS ROW ---
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    OutlinedTextField(
+                        value = minimumPersonnel,
+                        onValueChange = {
+                            if (it.isEmpty() || it.all { char -> char.isDigit() }) {
+                                minimumPersonnel = it
+                            }
                         },
-                        enabled = uiState !is ActivityCreateState.Loading, // Disable while loading
-                        modifier = Modifier.fillMaxWidth().height(50.dp)
-                    ) {
-                        if (uiState is ActivityCreateState.Loading) {
-                            CircularProgressIndicator(
-                                color = Color.White,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        } else {
-                            Text("Post Activity")
-                        }
-                    }
-                }
-            }
-            // --- DATE PICKER DIALOGS ---
+                        label = { Text("Min People") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f).padding(end = 4.dp)
+                    )
 
-            if (showStartPicker) {
-                val dateState = rememberDatePickerState()
-                DatePickerDialog(
-                    onDismissRequest = { showStartPicker = false },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            startDate = dateState.selectedDateMillis
-                            showStartPicker = false
-                        }) { Text("OK") }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { showStartPicker = false }) { Text("Cancel") }
-                    }
-                ) {
-                    DatePicker(state = dateState)
+                    OutlinedTextField(
+                        value = maximumPersonnel,
+                        onValueChange = {
+                            if (it.isEmpty() || it.all { char -> char.isDigit() }) {
+                                maximumPersonnel = it
+                            }
+                        },
+                        label = { Text("Max People") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f).padding(start = 4.dp)
+                    )
                 }
-            }
+                Spacer(modifier = Modifier.height(32.dp))
 
-            if (showEndPicker) {
-                val dateState = rememberDatePickerState()
-                DatePickerDialog(
-                    onDismissRequest = { showEndPicker = false },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            endDate = dateState.selectedDateMillis
-                            showEndPicker = false
-                        }) { Text("OK") }
+                // --- SUBMIT BUTTON ---
+                Button(
+                    onClick = {
+                        // Convert Strings to Ints safely
+                        val min = minimumPersonnel.toIntOrNull() ?: 0
+                        val max = maximumPersonnel.toIntOrNull() ?: 0
+
+                        // Call the ViewModel function
+                        viewModel.createActivity(
+                            title = title,
+                            description = description,
+                            location = location,
+                            startDate = startDate ?: 0L,
+                            endDate = endDate ?: 0L,
+                            minimumPersonnel = min,
+                            maximumPersonnel = max
+                        )
                     },
-                    dismissButton = {
-                        TextButton(onClick = { showEndPicker = false }) { Text("Cancel") }
-                    }
+                    enabled = uiState !is ActivityCreateState.Loading,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
                 ) {
-                    DatePicker(state = dateState)
+                    if (uiState is ActivityCreateState.Loading) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    } else {
+                        Text("Post Activity")
+                    }
                 }
             }
         }
 
+        // --- DATE PICKER DIALOGS ---
+        if (showStartPicker) {
+            val dateState = rememberDatePickerState()
+            DatePickerDialog(
+                onDismissRequest = { showStartPicker = false },
+                confirmButton = {
+                    TextButton(onClick = {
+                        startDate = dateState.selectedDateMillis
+                        showStartPicker = false
+                    }) { Text("OK") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showStartPicker = false }) { Text("Cancel") }
+                }
+            ) {
+                DatePicker(state = dateState)
+            }
+        }
+
+        if (showEndPicker) {
+            val dateState = rememberDatePickerState()
+            DatePickerDialog(
+                onDismissRequest = { showEndPicker = false },
+                confirmButton = {
+                    TextButton(onClick = {
+                        endDate = dateState.selectedDateMillis
+                        showEndPicker = false
+                    }) { Text("OK") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showEndPicker = false }) { Text("Cancel") }
+                }
+            ) {
+                DatePicker(state = dateState)
+            }
+        }
+    }
 }
-
-
