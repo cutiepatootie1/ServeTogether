@@ -52,21 +52,6 @@ fun UpdateProfileScreen(
     val scrollState = rememberScrollState()
     val dateFormatter = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()) }
 
-    // Custom TextField colors - BLACK TEXT!
-    val textFieldColors = OutlinedTextFieldDefaults.colors(
-        focusedTextColor = Color.Black,
-        unfocusedTextColor = Color.Black,
-        disabledTextColor = Color.Black,
-        focusedContainerColor = Color.White,
-        unfocusedContainerColor = Color.White,
-        disabledContainerColor = Color.White,
-        focusedBorderColor = darkBlue,
-        unfocusedBorderColor = Color.Gray,
-        focusedLabelColor = darkBlue,
-        unfocusedLabelColor = Color.Gray,
-        cursorColor = darkBlue
-    )
-
     // Load profile data on first composition
     LaunchedEffect(Unit) {
         viewModel.loadProfileData()
@@ -89,8 +74,10 @@ fun UpdateProfileScreen(
         when (profileState) {
             is ProfileState.Success -> {
                 if (fullName.isNotEmpty() && fullName != viewModel.fullName) {
+                    // Only show toast and navigate if this is an update, not initial load
                     Toast.makeText(context, "Profile updated successfully!", Toast.LENGTH_SHORT).show()
                     viewModel.resetProfileState()
+                    // Force reload user data to update MenuBar
                     viewModel.loadUserData()
                     navController.popBackStack()
                 }
@@ -170,8 +157,7 @@ fun UpdateProfileScreen(
                             onValueChange = { fullName = it },
                             label = { Text("Full Name") },
                             modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            colors = textFieldColors
+                            singleLine = true
                         )
 
                         Spacer(modifier = Modifier.height(12.dp))
@@ -185,13 +171,12 @@ fun UpdateProfileScreen(
                                 label = { Text("Gender") },
                                 trailingIcon = {
                                     IconButton(onClick = { genderExpanded = !genderExpanded }) {
-                                        Icon(Icons.Default.ArrowDropDown, null, tint = darkBlue)
+                                        Icon(Icons.Default.ArrowDropDown, null)
                                     }
                                 },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable { genderExpanded = true },
-                                colors = textFieldColors
+                                    .clickable { genderExpanded = true }
                             )
                             DropdownMenu(
                                 expanded = genderExpanded,
@@ -200,7 +185,7 @@ fun UpdateProfileScreen(
                             ) {
                                 genderOptions.forEach { option ->
                                     DropdownMenuItem(
-                                        text = { Text(option, color = Color.Black) },
+                                        text = { Text(option) },
                                         onClick = {
                                             gender = option
                                             genderExpanded = false
@@ -220,13 +205,12 @@ fun UpdateProfileScreen(
                             label = { Text("Date of Birth") },
                             trailingIcon = {
                                 IconButton(onClick = { showDatePicker = true }) {
-                                    Icon(Icons.Default.CalendarToday, null, tint = darkBlue)
+                                    Icon(Icons.Default.CalendarToday, null)
                                 }
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { showDatePicker = true },
-                            colors = textFieldColors
+                                .clickable { showDatePicker = true }
                         )
                     }
                 }
@@ -253,8 +237,7 @@ fun UpdateProfileScreen(
                             onValueChange = { school = it },
                             label = { Text("School") },
                             modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            colors = textFieldColors
+                            singleLine = true
                         )
 
                         Spacer(modifier = Modifier.height(12.dp))
@@ -264,8 +247,7 @@ fun UpdateProfileScreen(
                             onValueChange = { studentId = it },
                             label = { Text("Student ID") },
                             modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            colors = textFieldColors
+                            singleLine = true
                         )
                     }
                 }
@@ -292,8 +274,7 @@ fun UpdateProfileScreen(
                             onValueChange = { email = it },
                             label = { Text("Email") },
                             modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            colors = textFieldColors
+                            singleLine = true
                         )
 
                         Text(
@@ -335,8 +316,7 @@ fun UpdateProfileScreen(
                         Text(
                             "Save Changes",
                             fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
@@ -357,23 +337,16 @@ fun UpdateProfileScreen(
                         }
                         showDatePicker = false
                     }) {
-                        Text("OK", color = darkBlue)
+                        Text("OK")
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { showDatePicker = false }) {
-                        Text("Cancel", color = darkBlue)
+                        Text("Cancel")
                     }
                 }
             ) {
-                DatePicker(
-                    state = dateState,
-                    colors = DatePickerDefaults.colors(
-                        selectedDayContainerColor = darkBlue,
-                        todayContentColor = darkBlue,
-                        todayDateBorderColor = darkBlue
-                    )
-                )
+                DatePicker(state = dateState)
             }
         }
     }

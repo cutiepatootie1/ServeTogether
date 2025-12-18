@@ -21,10 +21,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.filled.BusinessCenter
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Support
 import androidx.compose.material.icons.filled.VolunteerActivism
@@ -47,6 +47,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -60,6 +61,7 @@ fun MenuBar(
     viewModel: UserViewModel = viewModel()
 ) {
     LaunchedEffect(Unit) {
+        // Force load user data when MenuBar is shown
         viewModel.loadUserData()
     }
 
@@ -69,6 +71,7 @@ fun MenuBar(
     val userSchool by viewModel.userSchool.collectAsState()
 
     var activitiesExpanded by remember { mutableStateOf(false) }
+    var organizationExpanded by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -76,7 +79,7 @@ fun MenuBar(
             .width(300.dp)
             .background(Color.White)
     ) {
-        // Gradient Header with Logo and Profile
+        // 🎨 Gradient Header with Logo and Profile
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -88,7 +91,7 @@ fun MenuBar(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Logo
+            // 📷 Logo (Circular)
             Image(
                 painter = painterResource(id = R.drawable.servetogether_logo),
                 contentDescription = "ServeTogether Logo",
@@ -101,7 +104,7 @@ fun MenuBar(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Profile Picture
+            // 👤 Profile Picture (Placeholder)
             Icon(
                 imageVector = Icons.Default.AccountCircle,
                 contentDescription = "Profile Picture",
@@ -115,7 +118,7 @@ fun MenuBar(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // User Name
+            // 📝 User Name
             Text(
                 text = currentUser.ifEmpty { "User" },
                 fontWeight = FontWeight.Bold,
@@ -125,7 +128,7 @@ fun MenuBar(
                 overflow = TextOverflow.Ellipsis
             )
 
-            // School/Role
+            // 🏫 School/Role
             Text(
                 text = userSchool.ifEmpty { role.replaceFirstChar { it.uppercase() } },
                 fontSize = 14.sp,
@@ -140,16 +143,7 @@ fun MenuBar(
         // Menu Items Section
         Column(modifier = Modifier.weight(1f)) {
 
-            // HOME BUTTON - NEW!
-            MenuItem(
-                icon = Icons.Filled.Home,
-                text = "Home",
-                darkBlue = darkBlue
-            ) {
-                onItemClick("home_screen/$role")
-            }
-
-            // View Profile
+            // 👤 View Profile
             MenuItem(
                 icon = Icons.Filled.AccountCircle,
                 text = "View Profile",
@@ -160,7 +154,7 @@ fun MenuBar(
 
             // VOLUNTEER MENU
             if (role.equals("volunteer", ignoreCase = true)) {
-                // See Activities dropdown
+                // 📋 See Activities ▼
                 MenuItem(
                     icon = Icons.Filled.VolunteerActivism,
                     text = "See Activities",
@@ -170,6 +164,7 @@ fun MenuBar(
                     activitiesExpanded = !activitiesExpanded
                 }
 
+                // Dropdown: Volunteer Activities & Donations
                 AnimatedVisibility(
                     visible = activitiesExpanded,
                     enter = expandVertically() + fadeIn(),
@@ -182,6 +177,7 @@ fun MenuBar(
                             .padding(vertical = 4.dp)
                     ) {
                         DropdownItem(text = "Volunteer Activities") {
+                            // Navigate to home screen which shows activities
                             onItemClick("home_screen/$role")
                         }
                         DropdownItem(text = "Volunteer Donations") {
@@ -193,9 +189,9 @@ fun MenuBar(
 
             // ORGANIZATION MENU
             if (role.equals("organization", ignoreCase = true)) {
-                // See Activities dropdown
+                // 📋 See Activities ▼
                 MenuItem(
-                    icon = Icons.Filled.VolunteerActivism,
+                    icon = Icons.Filled.Assignment,
                     text = "See Activities",
                     darkBlue = darkBlue,
                     trailingIcon = if (activitiesExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore
@@ -203,6 +199,7 @@ fun MenuBar(
                     activitiesExpanded = !activitiesExpanded
                 }
 
+                // Dropdown: Organized Activities & Donations
                 AnimatedVisibility(
                     visible = activitiesExpanded,
                     enter = expandVertically() + fadeIn(),
@@ -223,18 +220,41 @@ fun MenuBar(
                     }
                 }
 
+                // Divider
                 Divider(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     color = Color.LightGray.copy(alpha = 0.5f)
                 )
 
-                // START AN ACTIVITY - NOW DIRECT MENU ITEM (NOT DROPDOWN)!
+                // ➕ Organization ▼
                 MenuItem(
-                    icon = Icons.Filled.Add,
-                    text = "Start an Activity",
-                    darkBlue = darkBlue
+                    icon = Icons.Filled.BusinessCenter,
+                    text = "Organization",
+                    darkBlue = darkBlue,
+                    trailingIcon = if (organizationExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore
                 ) {
-                    onItemClick("start_new_act")
+                    organizationExpanded = !organizationExpanded
+                }
+
+                // Dropdown: Start & Manage Activities
+                AnimatedVisibility(
+                    visible = organizationExpanded,
+                    enter = expandVertically() + fadeIn(),
+                    exit = shrinkVertically() + fadeOut()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color(0xFFF5F5F5))
+                            .padding(vertical = 4.dp)
+                    ) {
+                        DropdownItem(text = "Start an Activity") {
+                            onItemClick("start_new_act")
+                        }
+                        DropdownItem(text = "Manage Activities") {
+                            onItemClick("organized_activity")
+                        }
+                    }
                 }
             }
 
@@ -244,7 +264,7 @@ fun MenuBar(
                 color = Color.LightGray.copy(alpha = 0.5f)
             )
 
-            // Support
+            // ❓ Support
             MenuItem(
                 icon = Icons.Filled.Support,
                 text = "Support",
@@ -254,7 +274,7 @@ fun MenuBar(
             }
         }
 
-        // Log Out (Red) - At Bottom
+        // 🚪 Log Out (Red) - At Bottom
         Column {
             Divider(
                 modifier = Modifier.padding(horizontal = 16.dp),
@@ -263,7 +283,7 @@ fun MenuBar(
             MenuItem(
                 icon = Icons.Filled.Logout,
                 text = "Log Out",
-                darkBlue = Color(0xFFD32F2F)
+                darkBlue = Color(0xFFD32F2F) // Red color for logout
             ) {
                 onItemClick("logout")
             }
@@ -322,6 +342,7 @@ fun DropdownItem(text: String, onClick: () -> Unit) {
             .padding(start = 54.dp, end = 16.dp, top = 10.dp, bottom = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // Bullet point indicator
         Icon(
             imageVector = Icons.Default.AccountCircle,
             contentDescription = null,
@@ -336,4 +357,16 @@ fun DropdownItem(text: String, onClick: () -> Unit) {
             fontWeight = FontWeight.Normal
         )
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun MenuBarVolunteerPreview() {
+    MenuBar(role = "volunteer", onItemClick = {})
+}
+
+@Preview(showBackground = true)
+@Composable
+fun MenuBarOrganizationPreview() {
+    MenuBar(role = "organization", onItemClick = {})
 }

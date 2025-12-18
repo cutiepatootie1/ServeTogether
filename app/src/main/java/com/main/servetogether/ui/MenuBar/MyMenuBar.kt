@@ -43,7 +43,9 @@ class MyMenuBar : View {
             invalidateTextPaintAndMeasurements()
         }
 
-
+    /**
+     * In the example view, this dimension is the font size.
+     */
     var exampleDimension: Float
         get() = _exampleDimension
         set(value) {
@@ -51,7 +53,9 @@ class MyMenuBar : View {
             invalidateTextPaintAndMeasurements()
         }
 
-
+    /**
+     * In the example view, this drawable is drawn above the text.
+     */
     var exampleDrawable: Drawable? = null
 
     constructor(context: Context) : super(context) {
