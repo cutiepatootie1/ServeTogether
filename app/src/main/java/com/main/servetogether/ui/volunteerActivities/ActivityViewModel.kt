@@ -1,45 +1,62 @@
 package com.main.servetogether.ui.volunteerActivities
 
-import android.util.Log.e
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
 import com.main.servetogether.data.model.VolunteeringActivity
 import com.main.servetogether.data.repository.VolunteerRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
+// State for Activity Creation
 sealed class ActivityCreateState {
     object Idle : ActivityCreateState()
     object Loading : ActivityCreateState()
     data class Success(val activityId: String) : ActivityCreateState()
     data class Error(val message: String) : ActivityCreateState()
 }
+
 class ActivityViewModel : ViewModel() {
+    private val db = FirebaseFirestore.getInstance("servedb")
+    private val repository = VolunteerRepository()
+    private val auth = FirebaseAuth.getInstance()
 
+    // Activity Creation State
     private val _uiState = MutableStateFlow<ActivityCreateState>(ActivityCreateState.Idle)
-    val uiState: StateFlow<ActivityCreateState> = _uiState
+    val uiState: StateFlow<ActivityCreateState> = _uiState.asStateFlow()
 
-    val auth = FirebaseAuth.getInstance()
-    val db = FirebaseFirestore.getInstance("servedb")
-
-    val repository = VolunteerRepository()
-    private val _userActivities = MutableStateFlow<List<VolunteeringActivity>>(emptyList())
-    val userActivities: StateFlow<List<VolunteeringActivity>> = _userActivities
-
+    // All activities (for feed with pagination)
     private val _allActivities = MutableStateFlow<List<VolunteeringActivity>>(emptyList())
-    val allActivities: StateFlow<List<VolunteeringActivity>> = _allActivities
-    private val _organizedActivities = MutableStateFlow<List<VolunteeringActivity>>(emptyList())
-    val organizedActivities: StateFlow<List<VolunteeringActivity>> = _organizedActivities
-    // Pagination State
-    private var lastVisible: DocumentSnapshot? = null
-    private val _isEndOfList = MutableStateFlow(false)
-    val isEndOfList: StateFlow<Boolean> = _isEndOfList
-    private var isLoadingMore = false
-    private val _isError = MutableStateFlow(false)
-    val isError: StateFlow<Boolean> = _isError
+    val allActivities: StateFlow<List<VolunteeringActivity>> = _allActivities.asStateFlow()
 
+    // User's registered activities
+    private val _userActivities = MutableStateFlow<List<VolunteeringActivity>>(emptyList())
+    val userActivities: StateFlow<List<VolunteeringActivity>> = _userActivities.asStateFlow()
+
+    // Activities organized by current user (for organizations)
+    private val _orgActivities = MutableStateFlow<List<VolunteeringActivity>>(emptyList())
+    val orgActivities: StateFlow<List<VolunteeringActivity>> = _orgActivities.asStateFlow()
+
+    // Current activity details
+    private val _currentActivity = MutableStateFlow<VolunteeringActivity?>(null)
+    val currentActivity: StateFlow<VolunteeringActivity?> = _currentActivity.asStateFlow()
+
+    // Pagination states
+    private val _isEndOfList = MutableStateFlow(false)
+    val isEndOfList: StateFlow<Boolean> = _isEndOfList.asStateFlow()
+
+    private val _isError = MutableStateFlow(false)
+    val isError: StateFlow<Boolean> = _isError.asStateFlow()
+
+    private var lastDocument: com.google.firebase.firestore.DocumentSnapshot? = null
+    private val pageSize = 10
+
+    // Create Activity Function
     fun createActivity(
         title: String,
         description: String,
@@ -47,192 +64,255 @@ class ActivityViewModel : ViewModel() {
         startDate: Long,
         endDate: Long,
         minimumPersonnel: Int,
-        maximumPersonnel: Int,
-    ){
-        if (title.isBlank() || description.isBlank()){
-            _uiState.value = ActivityCreateState.Error("Please fill in fields")
+        maximumPersonnel: Int
+    ) {
+        // Validation
+        if (title.isBlank()) {
+            _uiState.value = ActivityCreateState.Error("Please enter a title")
             return
         }
 
-        val currentUser = auth.currentUser
-        if (currentUser == null){
-            _uiState.value = ActivityCreateState.Error("Not logged in")
+        if (location.isBlank()) {
+            _uiState.value = ActivityCreateState.Error("Please enter a location")
             return
         }
 
-        val initialMembers = listOf(currentUser.uid)
+        if (startDate == 0L) {
+            _uiState.value = ActivityCreateState.Error("Please select a start date")
+            return
+        }
 
-        val newActivity = VolunteeringActivity(
+        if (endDate == 0L) {
+            _uiState.value = ActivityCreateState.Error("Please select an end date")
+            return
+        }
+
+        if (endDate < startDate) {
+            _uiState.value = ActivityCreateState.Error("End date must be after start date")
+            return
+        }
+
+        if (minimumPersonnel <= 0) {
+            _uiState.value = ActivityCreateState.Error("Minimum personnel must be at least 1")
+            return
+        }
+
+        if (maximumPersonnel < minimumPersonnel) {
+            _uiState.value = ActivityCreateState.Error("Maximum must be greater than or equal to minimum")
+            return
+        }
+
+        val userId = auth.currentUser?.uid
+        if (userId == null) {
+            _uiState.value = ActivityCreateState.Error("You must be logged in to create an activity")
+            return
+        }
+
+        _uiState.value = ActivityCreateState.Loading
+
+        val activity = VolunteeringActivity(
             title = title,
             description = description,
             location = location,
+            organizerId = userId,
             startDate = startDate,
             endDate = endDate,
             minimumPersonnel = minimumPersonnel,
             maximumPersonnel = maximumPersonnel,
-            organizerId = currentUser.uid,
-            registeredMembers = initialMembers // adds current user to the member list
+            registeredMembers = emptyList()
         )
 
-        _uiState.value = ActivityCreateState.Loading
-        repository.addActivity(newActivity,
-            onSuccess = {newId -> _uiState.value = ActivityCreateState.Success(newId)},
-            onFailure = {e -> _uiState.value = ActivityCreateState.Error(e.message ?: "Error")}
-            )
+        repository.addActivity(
+            activity = activity,
+            onSuccess = { activityId ->
+                _uiState.value = ActivityCreateState.Success(activityId)
+            },
+            onFailure = { exception ->
+                _uiState.value = ActivityCreateState.Error(
+                    exception.message ?: "Failed to create activity"
+                )
+            }
+        )
     }
-// ... inside VolunteerViewModel ...
 
-    // Holds the single activity for the Detail Screen
-    private val _currentActivity = MutableStateFlow<VolunteeringActivity?>(null)
-    val currentActivity: StateFlow<VolunteeringActivity?> = _currentActivity
+    fun resetState() {
+        _uiState.value = ActivityCreateState.Idle
+    }
 
+    // Fetch activities organized by the current user
+    fun fetchOrgActivities() {
+        val userId = auth.currentUser?.uid ?: return
+
+        viewModelScope.launch {
+            try {
+                val snapshot = db.collection("activities")
+                    .whereEqualTo("organizerId", userId)
+                    .orderBy("createdAt", Query.Direction.DESCENDING)
+                    .get()
+                    .await()
+
+                val activities = snapshot.documents.mapNotNull { doc ->
+                    doc.toObject(VolunteeringActivity::class.java)
+                }
+
+                _orgActivities.value = activities
+            } catch (e: Exception) {
+                _orgActivities.value = emptyList()
+            }
+        }
+    }
+
+    // Fetch activities the user has registered for
+    fun fetchRegActivities() {
+        val userId = auth.currentUser?.uid ?: return
+
+        viewModelScope.launch {
+            try {
+                val snapshot = db.collection("activities")
+                    .whereArrayContains("registeredMembers", userId)
+                    .orderBy("startDate", Query.Direction.ASCENDING)
+                    .limit(5)
+                    .get()
+                    .await()
+
+                val activities = snapshot.documents.mapNotNull { doc ->
+                    doc.toObject(VolunteeringActivity::class.java)
+                }
+
+                _userActivities.value = activities
+            } catch (e: Exception) {
+                _userActivities.value = emptyList()
+            }
+        }
+    }
+
+    // Fetch all activities user has registered for (full list)
+    fun fetchUserActivities() {
+        val userId = auth.currentUser?.uid ?: return
+
+        viewModelScope.launch {
+            try {
+                val snapshot = db.collection("activities")
+                    .whereArrayContains("registeredMembers", userId)
+                    .orderBy("startDate", Query.Direction.ASCENDING)
+                    .get()
+                    .await()
+
+                val activities = snapshot.documents.mapNotNull { doc ->
+                    doc.toObject(VolunteeringActivity::class.java)
+                }
+
+                _userActivities.value = activities
+            } catch (e: Exception) {
+                _userActivities.value = emptyList()
+            }
+        }
+    }
+
+    // Load next page of activities (for home feed)
+    fun loadNextPage() {
+        if (_isEndOfList.value) return
+
+        viewModelScope.launch {
+            try {
+                _isError.value = false
+
+                val query = db.collection("activities")
+                    .orderBy("createdAt", Query.Direction.DESCENDING)
+                    .limit(pageSize.toLong())
+
+                val snapshot = if (lastDocument == null) {
+                    query.get().await()
+                } else {
+                    query.startAfter(lastDocument!!).get().await()
+                }
+
+                if (snapshot.documents.isEmpty() || snapshot.documents.size < pageSize) {
+                    _isEndOfList.value = true
+                }
+
+                if (snapshot.documents.isNotEmpty()) {
+                    lastDocument = snapshot.documents.last()
+                    val newActivities = snapshot.documents.mapNotNull { doc ->
+                        doc.toObject(VolunteeringActivity::class.java)
+                    }
+                    _allActivities.value += newActivities
+                }
+            } catch (e: Exception) {
+                _isError.value = true
+            }
+        }
+    }
+
+    // Load specific activity details
     fun loadActivityDetails(activityId: String) {
-        // Reset first so we don't show old data
-        _currentActivity.value = null
-
         repository.getActivityById(
             activityId = activityId,
             onSuccess = { activity ->
                 _currentActivity.value = activity
             },
-            onFailure = { e ->
-                // Handle error (maybe add an Error state later)
-                android.util.Log.e("DETAIL_ERR", "Could not load activity", e)
+            onFailure = { exception ->
+                _currentActivity.value = null
             }
         )
     }
-    // 2. FETCH ACTIVITIES (Only the ones created by this user)
-    fun fetchOrgActivities() {
-        _uiState.value = ActivityCreateState.Loading
-        val currentUser = auth.currentUser ?: return
 
+    // Register user for an activity
+    fun registerForActivity(activity: VolunteeringActivity, onResult: (String) -> Unit) {
+        val userId = auth.currentUser?.uid
 
-        db.collection("activities")
-            // Query: Only show what *I* organized
-            .whereEqualTo("organizerId", currentUser.uid)
-            .get()
-            .addOnSuccessListener { result ->
-                val activities = result.toObjects(VolunteeringActivity::class.java)
-                _organizedActivities.value = activities
-                _uiState.value = ActivityCreateState.Idle
-            }
-            .addOnFailureListener { e ->
-                _uiState.value = ActivityCreateState.Error(e.message ?: "Failed to load")
-            }
-    }
-
-    fun fetchRegActivities() {
-        val currentUser = auth.currentUser ?: return
-
-        db.collection("activities")
-            .whereArrayContains("registeredMembers", currentUser.uid)
-            .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
-            .limit(5)
-            .get()
-            .addOnSuccessListener { result ->
-                val activities = result.toObjects(VolunteeringActivity::class.java)
-                _userActivities.value = activities
-            }
-            .addOnFailureListener { e ->
-                // Handle error silently or log it
-                android.util.Log.e("Home", "Error fetching recents", e)
-            }
-    }
-
-    // fetch recent activities associated with the user
-    fun fetchUserActivities() {
-
-        db.collection("activities")
-            .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
-            .limit(5)
-            .get()
-            .addOnSuccessListener { result ->
-                val activities = result.toObjects(VolunteeringActivity::class.java)
-                _allActivities.value = activities
-            }
-            .addOnFailureListener { e ->
-                // Handle error silently or log it
-                android.util.Log.e("Home", "Error fetching recents", e)
-            }
-    }
-
-    fun registerForActivity(
-        activity: VolunteeringActivity,
-        onResult: (String) -> Unit // Callback to send message back to UI
-    ) {
-        val currentUser = auth.currentUser
-
-        // 1. Check Login
-        if (currentUser == null) {
-            onResult("You need to be logged in to register.")
+        if (userId == null) {
+            onResult("Please log in to register")
             return
         }
 
-        // 2. Check if ALREADY registered
-        if (activity.registeredMembers.contains(currentUser.uid)) {
-            onResult("You are already registered for this activity!")
+        if (activity.registeredMembers.contains(userId)) {
+            onResult("You are already registered")
             return
         }
 
-        // 3. Register
+        if (activity.registeredMembers.size >= activity.maximumPersonnel) {
+            onResult("Activity is full")
+            return
+        }
+
         repository.registerUserForActivity(
             activityId = activity.id,
-            userId = currentUser.uid,
+            userId = userId,
             onSuccess = {
-                onResult("Successfully Registered!")
-                // Optionally refresh data here if you aren't using real-time listeners
-                fetchUserActivities()
+                // Reload activity details
+                loadActivityDetails(activity.id)
+                onResult("Registration successful!")
             },
-            onFailure = {
-                onResult("Registration failed. Please try again.")
+            onFailure = { exception ->
+                onResult("Failed to register: ${exception.message}")
             }
         )
     }
 
-    fun loadNextPage() {
-        if (_isEndOfList.value || isLoadingMore) return
+    // Delete an activity (for organizers)
+    fun deleteActivity(activityId: String, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            try {
+                db.collection("activities")
+                    .document(activityId)
+                    .delete()
+                    .await()
 
-        isLoadingMore = true
-        _isError.value = false
-
-        val timeoutHandler = android.os.Handler(android.os.Looper.getMainLooper())
-        val timeoutRunnable = Runnable {
-            if (isLoadingMore) {
-                isLoadingMore = false
-                _isError.value = true // Trigger timeout error
+                // Remove from local list
+                _orgActivities.value = _orgActivities.value.filter { it.id != activityId }
+                onResult(true)
+            } catch (e: Exception) {
+                onResult(false)
             }
         }
-
-        // Set timeout for 15 seconds
-        timeoutHandler.postDelayed(timeoutRunnable, 15000)
-
-        db.collection("activities")
-            .limit(10)
-            .get()
-            .addOnSuccessListener { result ->
-                timeoutHandler.removeCallbacks(timeoutRunnable)
-                val activities = result.toObjects(VolunteeringActivity::class.java)
-                _allActivities.value = activities
-                _uiState.value = ActivityCreateState.Idle
-                isLoadingMore = false
-            }
-            .addOnFailureListener { e ->
-                timeoutHandler.removeCallbacks(timeoutRunnable)
-                isLoadingMore = false
-                _isError.value = true
-                _uiState.value = ActivityCreateState.Error(e.message ?: "Failed to load")
-            }
     }
 
-    // Call this to wipe and refresh the feed (e.g., Pull-to-Refresh)
-    fun refreshFeed() {
-        lastVisible = null
-        _isEndOfList.value = false
+    // Reset pagination
+    fun resetPagination() {
         _allActivities.value = emptyList()
-        loadNextPage()
-    }
-
-    fun resetState(){
-        val _uiState = ActivityCreateState.Idle
+        _isEndOfList.value = false
+        _isError.value = false
+        lastDocument = null
     }
 }

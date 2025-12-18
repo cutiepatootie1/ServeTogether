@@ -33,7 +33,7 @@ sealed class AuthState {
 class UserViewModel : ViewModel() {
 
     private val auth = FirebaseAuth.getInstance()
-    private val db = FirebaseFirestore.getInstance("servedb") // Use same instance as LoginScreen
+    private val db = FirebaseFirestore.getInstance("servedb")
 
     // Profile State
     private val _profileState = MutableStateFlow<ProfileState>(ProfileState.Idle)
@@ -88,6 +88,7 @@ class UserViewModel : ViewModel() {
         }
     }
 
+    // Make this public so MenuBar can call it
     fun loadUserData() {
         val userId = auth.currentUser?.uid ?: return
 
@@ -96,7 +97,6 @@ class UserViewModel : ViewModel() {
                 val document = db.collection("users").document(userId).get().await()
 
                 if (document.exists()) {
-                    // Load basic user info
                     _userName.value = document.getString("fullName") ?: ""
                     _userSchool.value = document.getString("school") ?: ""
                     _userRole.value = document.getString("role") ?: "volunteer"
@@ -155,8 +155,9 @@ class UserViewModel : ViewModel() {
         newStudentId: String
     ) {
         val userId = auth.currentUser?.uid
+        val currentUser = auth.currentUser
 
-        if (userId == null) {
+        if (userId == null || currentUser == null) {
             _profileState.value = ProfileState.Error("User not logged in")
             return
         }
@@ -175,6 +176,19 @@ class UserViewModel : ViewModel() {
                     }
                 }
 
+                // CRITICAL FIX: Update Firebase Auth email if it changed
+                if (newEmail != currentUser.email) {
+                    try {
+                        currentUser.updateEmail(newEmail).await()
+                    } catch (e: Exception) {
+                        _profileState.value = ProfileState.Error(
+                            "Failed to update email: ${e.message}. You may need to re-authenticate."
+                        )
+                        return@launch
+                    }
+                }
+
+                // Update Firestore
                 val updates = hashMapOf<String, Any?>(
                     "fullName" to newFullName,
                     "gender" to newGender,
