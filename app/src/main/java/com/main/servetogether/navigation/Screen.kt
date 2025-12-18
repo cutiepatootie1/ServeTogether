@@ -5,7 +5,6 @@ sealed class Screen(val route: String){
     object CreateAcc : Screen("create_account")
     object ForgotPass : Screen("forgot_password")
     object Home : Screen("home_screen")
-    // TODO: ADD NEW SCREEN FOR ROLE SELECTION WHICH WILL GIVE USERS NECESSARY PERMISSIONS FOR LATER FEATURES
     object RoleSelect : Screen("role_selection")
     object CreateAct : Screen("create_activity")
     object Profile : Screen("profile")
@@ -14,10 +13,6 @@ sealed class Screen(val route: String){
         fun passId(activityId: String) =
             "volunteer_activity/$activityId"
     }
-
     object Donation : Screen("donation_screen/{role}")
-
-    object Support : Screen("support/{role}")
-
-
+    object Support : Screen("support")
 }

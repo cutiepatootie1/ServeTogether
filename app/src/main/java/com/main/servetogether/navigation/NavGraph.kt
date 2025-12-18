@@ -21,10 +21,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.google.firebase.auth.FirebaseAuth
-import com.main.servetogether.data.model.VolunteeringActivity
-import com.main.servetogether.shared.AuthState
 import com.main.servetogether.shared.UserViewModel
 import com.main.servetogether.ui.createaccount.CreateAccScreen
+import com.main.servetogether.ui.createaccount.CreateAccScreenStep2
 import com.main.servetogether.ui.forgotpass.ForgotPass
 import com.main.servetogether.ui.homescreen.HomeScreen
 import com.main.servetogether.ui.login.LoginScreen
@@ -41,44 +40,51 @@ import com.main.servetogether.ui.support.SupportScreen
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun AppNavGraph(navController: NavHostController,
-                userViewModel: UserViewModel = viewModel()
+fun AppNavGraph(
+    navController: NavHostController,
+    userViewModel: UserViewModel = viewModel()
 ) {
     val auth = FirebaseAuth.getInstance()
+
     NavHost(
         navController = navController,
         startDestination = Screen.Login.route
     ) {
         //login screen route
-        composable(Screen.Login.route, exitTransition = {
-            when (targetState.destination.route) {
-                Screen.CreateAcc.route -> slideOutHorizontally(
-                    targetOffsetX = { -1000 },
-                    animationSpec = tween(300)
-                )
-
-                else -> null
+        composable(
+            Screen.Login.route,
+            exitTransition = {
+                when (targetState.destination.route) {
+                    Screen.CreateAcc.route -> slideOutHorizontally(
+                        targetOffsetX = { -1000 },
+                        animationSpec = tween(300)
+                    )
+                    else -> null
+                }
             }
-        }) { LoginScreen(navController) }
+        ) {
+            LoginScreen(navController)
+        }
 
-        composable(Screen.ForgotPass.route) { ForgotPass(navController) }
+        composable(Screen.ForgotPass.route) {
+            ForgotPass(navController)
+        }
 
         composable(Screen.RoleSelect.route) {
             RoleSelectionScreen(
                 onRoleSelected = { role ->
-                    // Navigate to sign up, passing the role as a path parameter
                     navController.navigate("create_account/$role")
                 }
             )
         }
 
-        // SCREEN 2: Create Account (Receives the variable)
+        // STEP 1: Create Account - Account Info
         composable(
-            route = "create_account/{role}", // {role} is a placeholder for the data
+            route = "create_account/{role}",
             arguments = listOf(navArgument("role") { type = NavType.StringType }),
             enterTransition = {
                 slideInHorizontally(
-                    initialOffsetX = { 1000 }, // slide from right
+                    initialOffsetX = { 1000 },
                     animationSpec = tween(300)
                 )
             },
@@ -95,9 +101,44 @@ fun AppNavGraph(navController: NavHostController,
                 )
             }
         ) { backStackEntry ->
-            // Extract the role from the navigation arguments
             val role = backStackEntry.arguments?.getString("role") ?: "user"
             CreateAccScreen(navController, role = role)
+        }
+
+        // STEP 2: Create Account - Personal Details
+        composable(
+            route = "create_account_step2/{role}/{fullName}/{email}/{password}",
+            arguments = listOf(
+                navArgument("role") { type = NavType.StringType },
+                navArgument("fullName") { type = NavType.StringType },
+                navArgument("email") { type = NavType.StringType },
+                navArgument("password") { type = NavType.StringType }
+            ),
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { 1000 },
+                    animationSpec = tween(300)
+                )
+            },
+            popExitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { 1000 },
+                    animationSpec = tween(300)
+                )
+            }
+        ) { backStackEntry ->
+            val role = backStackEntry.arguments?.getString("role") ?: "user"
+            val fullName = backStackEntry.arguments?.getString("fullName") ?: ""
+            val email = backStackEntry.arguments?.getString("email") ?: ""
+            val password = backStackEntry.arguments?.getString("password") ?: ""
+
+            CreateAccScreenStep2(
+                navController = navController,
+                role = role,
+                fullName = fullName,
+                email = email,
+                password = password
+            )
         }
 
         composable(
@@ -105,14 +146,15 @@ fun AppNavGraph(navController: NavHostController,
             arguments = listOf(navArgument("role") { type = NavType.StringType }),
             enterTransition = {
                 fadeIn(animationSpec = tween(500))
-            }) { backStackEntry ->
+            }
+        ) { backStackEntry ->
             val role = backStackEntry.arguments?.getString("role") ?: "user"
             HomeScreen(role = role, navController)
         }
 
         //For the Donation
         composable(
-            route = Screen.Donation.route,
+            route = "donation_screen/{role}",
             arguments = listOf(navArgument("role") { type = NavType.StringType }),
             enterTransition = {
                 slideInHorizontally(
@@ -127,9 +169,7 @@ fun AppNavGraph(navController: NavHostController,
                 )
             }
         ) { backStackEntry ->
-
             val role = backStackEntry.arguments?.getString("role") ?: "volunteer"
-
             DonationScreen(
                 navController = navController,
                 role = role
@@ -140,13 +180,13 @@ fun AppNavGraph(navController: NavHostController,
             route = "create_activity",
             enterTransition = {
                 slideInHorizontally(
-                    initialOffsetX = { 1000 }, // Slide in from right
+                    initialOffsetX = { 1000 },
                     animationSpec = tween(300)
                 )
             },
             popExitTransition = {
                 slideOutHorizontally(
-                    targetOffsetX = { 1000 }, // Slide out to right
+                    targetOffsetX = { 1000 },
                     animationSpec = tween(300)
                 )
             }
@@ -160,14 +200,13 @@ fun AppNavGraph(navController: NavHostController,
             arguments = listOf(navArgument("activityId") { type = NavType.StringType })
         ) { backStackEntry ->
             val id = backStackEntry.arguments?.getString("activityId") ?: ""
-
             VolunteerActivity(
                 navController = navController,
                 activityId = id
             )
         }
 
-        // Profile Screen (View Only)
+        // Profile Screen (View Only) - WITH AUTO REFRESH
         composable(
             route = Screen.Profile.route,
             enterTransition = {
@@ -183,10 +222,12 @@ fun AppNavGraph(navController: NavHostController,
                 )
             }
         ) {
-            ProfileScreen(navController = navController)
+            // Force reload profile data when navigating to profile
+            LaunchedEffect(Unit) {
+                userViewModel.loadProfileData()
+            }
+            ProfileScreen(navController = navController, viewModel = userViewModel)
         }
-
-
 
         // Update Profile Screen
         composable(
@@ -204,7 +245,10 @@ fun AppNavGraph(navController: NavHostController,
                 )
             }
         ) {
-            UpdateProfileScreen(navController = navController)
+            UpdateProfileScreen(
+                navController = navController,
+                viewModel = userViewModel
+            )
         }
 
         //Volunteer Activity
@@ -221,8 +265,21 @@ fun AppNavGraph(navController: NavHostController,
             )
         }
 
-
-        composable(Screen.OrganizedActivity.route) {
+        composable(
+            route = Screen.OrganizedActivity.route,
+            enterTransition = {
+                slideInHorizontally(
+                    initialOffsetX = { 1000 },
+                    animationSpec = tween(300)
+                )
+            },
+            popExitTransition = {
+                slideOutHorizontally(
+                    targetOffsetX = { 1000 },
+                    animationSpec = tween(300)
+                )
+            }
+        ) {
             OrganizedActivity(navController = navController)
         }
 
@@ -234,22 +291,37 @@ fun AppNavGraph(navController: NavHostController,
             TaskDetails(navController = navController, taskId = taskId)
         }
 
-        //for the support ni sya
+        // Support Screen - Fixed route without role parameter
         composable(
             route = Screen.Support.route,
-            arguments = listOf(navArgument("role") { type = NavType.StringType }),
             enterTransition = {
-                slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(300))
+                slideInHorizontally(
+                    initialOffsetX = { 1000 },
+                    animationSpec = tween(300)
+                )
             },
             popExitTransition = {
-                slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(300))
+                slideOutHorizontally(
+                    targetOffsetX = { 1000 },
+                    animationSpec = tween(300)
+                )
             }
-        ) { backStackEntry ->
-            val role = backStackEntry.arguments?.getString("role") ?: "volunteer"
-            SupportScreen(navController = navController, role = role)
-        }
+        ) {
+            val currentRole by userViewModel.userRole.collectAsState()
 
+            if (currentRole == null) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                SupportScreen(
+                    navController = navController,
+                    role = currentRole ?: "volunteer"
+                )
+            }
+        }
     }
 }
-
-
