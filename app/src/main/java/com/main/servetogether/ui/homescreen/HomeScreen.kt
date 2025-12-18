@@ -62,26 +62,25 @@ fun HomeScreen(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-    // Track if notification was shown this session
-    var hasShownNotification by remember { mutableStateOf(false) }
+    // Track if notification was shown and dismissed
+    var notificationDismissed by remember { mutableStateOf(false) }
     var showNewActivityDialog by remember { mutableStateOf(false) }
     var latestActivityId by remember { mutableStateOf<String?>(null) }
 
     // Check for new activities only once on first composition
     LaunchedEffect(currentRole) {
-        if (currentRole == "volunteer" && !hasShownNotification) {
+        if (currentRole == "volunteer") {
             activityViewModel.loadNextPage()
         }
     }
 
-    // Monitor for new activities
+    // Monitor for new activities - only show if not already dismissed
     val activities by activityViewModel.allActivities.collectAsState()
     LaunchedEffect(activities) {
-        if (currentRole == "volunteer" && !hasShownNotification && activities.isNotEmpty()) {
-            // Show notification only once
+        if (currentRole == "volunteer" && !notificationDismissed && activities.isNotEmpty()) {
+            // Show notification only if not dismissed
             latestActivityId = activities.firstOrNull()?.id
             showNewActivityDialog = true
-            hasShownNotification = true
         }
     }
 
@@ -92,7 +91,10 @@ fun HomeScreen(
     } else {
         if (showNewActivityDialog) {
             AlertDialog(
-                onDismissRequest = { showNewActivityDialog = false },
+                onDismissRequest = {
+                    showNewActivityDialog = false
+                    notificationDismissed = true // Mark as dismissed
+                },
                 title = {
                     Text(
                         text = "New Activity Posted!",
@@ -111,6 +113,7 @@ fun HomeScreen(
                     Button(
                         onClick = {
                             showNewActivityDialog = false
+                            notificationDismissed = true // Mark as dismissed
                             latestActivityId?.let { id ->
                                 navController.navigate("activity_detail/$id")
                             }
@@ -122,7 +125,10 @@ fun HomeScreen(
                 },
                 dismissButton = {
                     Button(
-                        onClick = { showNewActivityDialog = false },
+                        onClick = {
+                            showNewActivityDialog = false
+                            notificationDismissed = true // Mark as dismissed permanently
+                        },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color.LightGray
                         )

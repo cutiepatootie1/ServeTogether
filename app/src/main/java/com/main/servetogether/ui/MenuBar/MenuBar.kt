@@ -21,8 +21,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Assignment
-import androidx.compose.material.icons.filled.BusinessCenter
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Logout
@@ -66,7 +66,6 @@ fun MenuBar(
     val userSchool by viewModel.userSchool.collectAsState()
 
     var activitiesExpanded by remember { mutableStateOf(false) }
-    var organizationExpanded by remember { mutableStateOf(false) }
 
     // Reload user data when MenuBar is displayed
     LaunchedEffect(Unit) {
@@ -189,6 +188,22 @@ fun MenuBar(
 
             // ORGANIZATION MENU
             if (role.equals("organization", ignoreCase = true)) {
+                // ➕ Start an Activity (larger font, solo item)
+                MenuItem(
+                    icon = Icons.Filled.AddCircle,
+                    text = "Start an Activity",
+                    darkBlue = darkBlue,
+                    fontSize = 17.sp // Larger font
+                ) {
+                    onItemClick("start_new_act")
+                }
+
+                // Divider
+                Divider(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    color = Color.LightGray.copy(alpha = 0.5f)
+                )
+
                 // 📋 See Activities ▼
                 MenuItem(
                     icon = Icons.Filled.Assignment,
@@ -199,7 +214,7 @@ fun MenuBar(
                     activitiesExpanded = !activitiesExpanded
                 }
 
-                // Dropdown: Organized Activities & Donations
+                // Dropdown: Organized Activities & Manage Activities
                 AnimatedVisibility(
                     visible = activitiesExpanded,
                     enter = expandVertically() + fadeIn(),
@@ -214,8 +229,8 @@ fun MenuBar(
                         DropdownItem(text = "Organized Activities") {
                             onItemClick("organized_activity")
                         }
-                        DropdownItem(text = "Volunteer Donations") {
-                            onItemClick("donation_screen/$role")
+                        DropdownItem(text = "Manage Activities") {
+                            onItemClick("organized_activity")
                         }
                     }
                 }
@@ -226,35 +241,13 @@ fun MenuBar(
                     color = Color.LightGray.copy(alpha = 0.5f)
                 )
 
-                // ➕ Organization ▼
+                // Volunteer Donations (outside dropdown)
                 MenuItem(
-                    icon = Icons.Filled.BusinessCenter,
-                    text = "Organization",
-                    darkBlue = darkBlue,
-                    trailingIcon = if (organizationExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore
+                    icon = Icons.Filled.VolunteerActivism,
+                    text = "Volunteer Donations",
+                    darkBlue = darkBlue
                 ) {
-                    organizationExpanded = !organizationExpanded
-                }
-
-                // Dropdown: Start & Manage Activities
-                AnimatedVisibility(
-                    visible = organizationExpanded,
-                    enter = expandVertically() + fadeIn(),
-                    exit = shrinkVertically() + fadeOut()
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color(0xFFF5F5F5))
-                            .padding(vertical = 4.dp)
-                    ) {
-                        DropdownItem(text = "Start an Activity") {
-                            onItemClick("start_new_act")
-                        }
-                        DropdownItem(text = "Manage Activities") {
-                            onItemClick("organized_activity")
-                        }
-                    }
+                    onItemClick("donation_screen/$role")
                 }
             }
 
@@ -299,6 +292,7 @@ fun MenuItem(
     text: String,
     darkBlue: Color,
     trailingIcon: ImageVector? = null,
+    fontSize: kotlin.Unit.sp = 15.sp,
     onClick: () -> Unit = {}
 ) {
     Row(
@@ -318,7 +312,7 @@ fun MenuItem(
         Text(
             text = text,
             color = darkBlue,
-            fontSize = 15.sp,
+            fontSize = fontSize,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.weight(1f)
         )
