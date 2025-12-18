@@ -47,13 +47,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.main.servetogether.R
 import com.main.servetogether.shared.UserViewModel
-import androidx.compose.ui.unit.TextUnit
 
 @Composable
 fun MenuBar(
@@ -91,7 +89,7 @@ fun MenuBar(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 📷 Logo (Circular)
+            // 🔷 Logo (Circular)
             Image(
                 painter = painterResource(id = R.drawable.servetogether_logo),
                 contentDescription = "ServeTogether Logo",
@@ -177,10 +175,11 @@ fun MenuBar(
                             .padding(vertical = 4.dp)
                     ) {
                         DropdownItem(text = "Volunteer Activities") {
-                            // Navigate to home screen which shows activities
+                            activitiesExpanded = false // Close dropdown
                             onItemClick("home_screen/$role")
                         }
                         DropdownItem(text = "Volunteer Donations") {
+                            activitiesExpanded = false // Close dropdown
                             onItemClick("donation_screen/$role")
                         }
                     }
@@ -189,11 +188,17 @@ fun MenuBar(
 
             // ORGANIZATION MENU
             if (role.equals("organization", ignoreCase = true)) {
-                // ➕ Start an Activity (larger font, solo item)
+                // Divider
+                Divider(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    color = Color.LightGray.copy(alpha = 0.5f)
+                )
+
+                // ➕ Start an Activity (larger font, prominent)
                 MenuItem(
                     icon = Icons.Filled.AddCircle,
                     text = "Start an Activity",
-                    darkBlue = darkBlue,
+                    darkBlue = Color(0xFF4CAF50), // Green color to make it stand out
                     fontSize = 17.sp // Larger font
                 ) {
                     onItemClick("start_new_act")
@@ -228,9 +233,11 @@ fun MenuBar(
                             .padding(vertical = 4.dp)
                     ) {
                         DropdownItem(text = "Organized Activities") {
+                            activitiesExpanded = false // Close dropdown
                             onItemClick("organized_activity")
                         }
                         DropdownItem(text = "Manage Activities") {
+                            activitiesExpanded = false // Close dropdown
                             onItemClick("organized_activity")
                         }
                     }
@@ -242,7 +249,7 @@ fun MenuBar(
                     color = Color.LightGray.copy(alpha = 0.5f)
                 )
 
-                // Volunteer Donations (outside dropdown)
+                // 💝 Volunteer Donations (outside dropdown, standalone)
                 MenuItem(
                     icon = Icons.Filled.VolunteerActivism,
                     text = "Volunteer Donations",
@@ -293,7 +300,7 @@ fun MenuItem(
     text: String,
     darkBlue: Color,
     trailingIcon: ImageVector? = null,
-    fontSize: TextUnit = 15.sp, // <--- Fixed line (changed from kotlin.Unit.sp)
+    fontSize: androidx.compose.ui.unit.TextUnit = 15.sp, // Fixed: Changed kotlin.Unit.sp to androidx.compose.ui.unit.TextUnit
     onClick: () -> Unit = {}
 ) {
     Row(
@@ -328,7 +335,6 @@ fun MenuItem(
     }
 }
 
-
 @Composable
 fun DropdownItem(text: String, onClick: () -> Unit) {
     Row(
@@ -353,16 +359,4 @@ fun DropdownItem(text: String, onClick: () -> Unit) {
             fontWeight = FontWeight.Normal
         )
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun MenuBarVolunteerPreview() {
-    MenuBar(role = "volunteer", onItemClick = {})
-}
-
-@Preview(showBackground = true)
-@Composable
-fun MenuBarOrganizationPreview() {
-    MenuBar(role = "organization", onItemClick = {})
 }
