@@ -1,27 +1,11 @@
 package com.main.servetogether.ui.homescreen.components
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,7 +26,7 @@ fun ActivityFeedSection(
 
     // Initial Load
     LaunchedEffect(Unit) {
-        if (activities.isEmpty()) {
+        if (activities.isEmpty() && !isEnd) {
             viewModel.loadNextPage()
         }
     }
@@ -51,37 +35,38 @@ fun ActivityFeedSection(
         Text(
             text = "Recently Posted",
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(16.dp)
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
 
-        LazyColumn(
-            contentPadding = PaddingValues(bottom = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.fillMaxWidth().height(400.dp)
-        ) {
-            items(activities.size) { index ->
-                val activity = activities[index]
-                ActivityListCard(activity, navController)
-
-                // PAGINATION TRIGGER
-                // If scrolled to the last item, load the next page
-                if (index == activities.lastIndex && !isEnd) {
-                    LaunchedEffect(Unit) {
-                        viewModel.loadNextPage()
-                    }
-                }
+        // Activities List
+        if (activities.isEmpty() && !isEnd && !isError) {
+            // Loading initial content
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
             }
+        } else {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                activities.forEach { activity ->
+                    ActivityListCard(activity, navController)
+                }
 
-                // 2. FOOTER SECTION
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (isError) {
-                            // --- TIMEOUT / ERROR STATE ---
+                // Footer: Loading indicator or end message
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    when {
+                        isError -> {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
                                     text = "Unable to load activities.",
@@ -99,32 +84,35 @@ fun ActivityFeedSection(
                                 }
                             }
                         }
-                        else if (activities.isEmpty() && isEnd) {
-                            // --- SHOW THIS WHEN END IS REACHED ---
+                        activities.isEmpty() && isEnd -> {
                             Text(
-                                text = "No more activities to show.",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = Color.LightGray
+                                text = "No activities available yet.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Gray
                             )
-                        } else if (isEnd) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = "You're all caught up!",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = Color.Gray,
-                                    fontWeight = FontWeight.Bold
+                        }
+                        isEnd -> {
+                            Text(
+                                text = "You're all caught up!",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.Gray,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        else -> {
+                            // Not at end, show load more button
+                            Button(
+                                onClick = { viewModel.loadNextPage() },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF0D47A1)
                                 )
+                            ) {
+                                Text("Load More")
                             }
-                        } else {
-                            // --- SHOW SPINNER WHILE LOADING MORE ---
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                strokeWidth = 2.dp,
-                                color = MaterialTheme.colorScheme.primary
-                            )
                         }
                     }
                 }
             }
         }
     }
+}
