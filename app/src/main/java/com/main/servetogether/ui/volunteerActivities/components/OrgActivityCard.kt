@@ -1,5 +1,6 @@
 package com.main.servetogether.ui.volunteerActivities.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
@@ -132,6 +134,21 @@ fun OrgActivityCard(
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 color = ServeBlueDark
                             )
+                        )
+                    }
+
+                    // --- BADGE (Registered Count) ---
+                    // Optional: Show how many people have joined
+                    Box(
+                        modifier = Modifier
+                            .padding(12.dp)
+                            .background(Color.White.copy(alpha = 0.9f), CircleShape)
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = "${activity.registeredMembers.size} Joined",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = ServeBlueDark
                         )
                     }
                 }

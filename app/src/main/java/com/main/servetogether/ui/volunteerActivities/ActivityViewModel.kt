@@ -141,7 +141,7 @@ class ActivityViewModel : ViewModel() {
 
     // Fetch activities organized by the current user
     fun fetchOrgActivities() {
-        val userId = auth.currentUser?.uid ?: return
+        val userId = auth.currentUser?.uid
 
         viewModelScope.launch {
             try {
